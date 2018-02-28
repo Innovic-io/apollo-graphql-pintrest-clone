@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  api:
+    volumes:
+      - ./:/home/node/app
+    command: npm run start:watch

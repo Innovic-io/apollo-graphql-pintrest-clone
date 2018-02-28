@@ -1,0 +1,107 @@
+type Query {
+  #################### PIN QUERYS ####################
+  getPin(pin: ID!): Pin
+  # The default response returns the ID, link, URL and description of the Pin.
+
+  getPinsFromBoard(board: String,
+    cursor: String): [Pin]
+  # The default response returns a list of Pins on the board with their ID, URL, link and description.
+
+  getUserPins(_id: String!, cursor: String): [Pin]
+  # The default response returns the ID, link, URL and description of each of the authenticated user’s Pins.
+
+  #################### USER QUERYS ####################
+  getUser(_id: String!): User
+  # The default response returns the first and last name, ID and URL of the authenticated user.
+
+  getUserBoards(_id: String!): [Board]
+  # The default response returns a list of the authenticated user’s public boards, including the URL, ID and name.
+
+  getBoardSuggestion(pin: ID!): [Board] # The pin_id that you want to return board suggestions for.
+  # Boards that Pinterest would suggest to the authenticated user if they were to save the specified Pin.
+  # The default response: ID, URL and name of the boards.
+
+  getUserFollowers(_id: String!, cursor: String): [User]
+
+  getUserFollowings(_id: String!, cursor: String): [User]
+
+  getFollowingBoards(_id: String!, cursor: String): [Board]
+
+  searchBoard(boardName: String): Board
+  # example /search/boards/?q=places%20to%20see%20before%20you%20die&rs=filter
+
+  searchPins(query: String): Pin
+  # query - if we want to search for specific pin
+  # example /search/pins/?q=places%20to%20see%20before%20you%20die
+  #################### BOARD QUERYS ####################
+  getBoard(board: String!): Board #  board - The board you want to fetch in the format <username>/<board_name>
+  # The default response returns the ID, URL and name of the specified board.
+
+}
+# cursor explonation - Pass the cursor value in your next request to receive the next 25 items in the list.
+type Mutation {
+  #################### PIN MUTATIONS ####################
+
+  createPin(
+    board: String!, # In the format <username>/<board_name>
+    note: String!,
+    link:String,
+    image: ImageScalar,        # image we want to upload via multipart form data
+    image_url: String    # link to image we want to Pin
+    image_base64: String # Base64 encoded image
+  ): Pin                 # image || image_url || image_base64 mandatory
+  # default response returns the note, URL, link and ID of the created Pin.
+
+  updatePin(
+    pin: ID!, # ID of pin to change
+    board: String, # The board you want to move the Pin to, in the format <username>/<board_name>.
+    note: String, # The new Pin description.
+    link: String # The new Pin link.
+  ): Pin
+
+  deletePin( pin:ID!): Pin
+
+  #################### USER MUTATIONS ####################
+
+  # My idea to make User
+  createUser(
+    username: String!,
+    first_name: String,
+    last_name: String,
+    bio: String
+  ): User
+
+  createFollowingBoard(board: String!): Board # board format = <username>/<board_name>.
+  # Makes the authenticated user follow the specified board.
+  # A empty response (or lack of error code) indicates success.
+
+  createFollowingUser(user: String!): User # user = The username of the user that you want to follow.
+  # Makes the authenticated user follow the specified user.
+  # A empty response (or lack of error code) indicates success.
+
+
+  deleteFollowingBoard(board: String!): Board # board format = <username>/<board_name>.
+  # Makes the authenticated user unfollow the specified board.
+  # A empty response (or lack of error code) indicates success.
+
+  deleteFollowingUser(user: String): User # user = username OR user ID
+  # Makes the authenticated user unfollow the specified user.
+  # A empty response (or lack of error code) indicates success.
+
+  #################### BOARD MUTATIONS ####################
+
+  createBoard(name: String!, description: String): Board
+  # Creates a board for the authenticated user.
+  # The default response returns the ID, URL and name of the created board.
+
+  updateBoard(
+    board: String!,     # The board you want to edit in the format <username>/<board_name>
+    name: String,       # new Board name
+    description: String # new board description
+  ): Board
+  # Changes the chosen board’s name and/or description.
+  # The default response returns the ID, URL and name of the edited board.
+
+  deleteBoard(board: String!): Board
+  # Deletes the specified board. This action is permanent and cannot be undone.
+}

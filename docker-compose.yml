@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  api:
+    env_file: .env
+    container_name: "${API_VERSION}-${RESOURCE_NAME}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+        PORT: ${PORT}
+    environment:
+      - 'PORT=${PORT}'
+      - 'API_VERSION:${API_VERSION}'
+      - 'RESOURCE_NAME:${RESOURCE_NAME}'
+      - 'DB_VOLUME_LOCATION=${DB_VOLUME_LOCATION}'
+      - 'MONGO_PORT=${MONGO_PORT}'
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      - mongo
+    links:
+      - mongo
+    restart: 'always'
+    command: pm2-docker start /home/node/app/pm2.json --web 4545
+  mongo:
+    image: mongo
+    container_name: "${API_VERSION}-${RESOURCE_NAME}-mongo"
+    command: mongod --port ${MONGO_PORT}
+    volumes:
+      - '${DB_VOLUME_LOCATION}:/data/db'
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+    restart: 'always'
