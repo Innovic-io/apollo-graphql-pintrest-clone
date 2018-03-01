@@ -1,0 +1,13 @@
+type Board {
+  id: ID!
+  name: String
+  url: String
+  description: String
+  creator: User
+  created_at: Date
+  numberOfPins: Int
+  followers: Int
+  users: [User]
+  collaborators: [User]
+  image: Image
+}

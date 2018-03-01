@@ -1,0 +1,19 @@
+scalar Date
+
+scalar ImageScalar # to return Image
+
+
+type Video {
+  title: String
+  URL: String
+  provider: String
+  author: String
+  author_url: String
+  provider_name: String
+}
+
+type Image {
+  URL: String
+  width: Float
+  heigth: Float
+}

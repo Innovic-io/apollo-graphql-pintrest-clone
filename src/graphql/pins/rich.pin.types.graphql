@@ -1,0 +1,55 @@
+##### ARTICLE #####
+type ArticlePin { # http://schema.org/Article
+  url: String!
+  title: String!
+  description: String!
+  datePublished: Date
+  siteName: String
+}
+
+##### PRODUCT #####
+type ProductPin { #  common.org/Product
+  url: String!
+  name: String!
+  description: String
+  brand: String # The brand name of the product (e.g., "Lucky Brand").
+  site_name: String
+}
+
+type OfferProperties {
+  name: String
+  description: String
+  sku: String # An ID that uniquely identifies the offer within your site.
+  price: Float!
+  priceCurrency: String!
+  standardPrice: Float
+  availability: AvailabilityEnum
+  availabilityStarts: Date
+  availabilityEnds: Date
+  eligableRegion: String # The countries the product can be shipped to.
+  # Use ISO 3166-1 alpha-2] country codes.
+  # If the product is available anywhere in the world, use "All".
+  # You can list.
+}
+
+enum AvailabilityEnum {
+  InStock
+  OnlineOnly,
+  InStoreOnly,
+  OutOfStock
+  PreOrder
+  Discontinued
+}
+
+##### RECIPE #####
+type RecipePin { # common.org/Recipe
+  site_name: String
+  name: String!
+  ingredients: [String]
+  url: String
+  image: ImageScalar
+  totalTime: String   # example "totalTime": 15 mins
+  recipeYield: String # The quantity or servings made by this recipe (e.g., "5 servings", "Serves 4-6" or "Yields 10 burgers").
+  aggregateRating: Float
+}
+

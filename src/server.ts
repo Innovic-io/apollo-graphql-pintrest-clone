@@ -1,33 +1,33 @@
 import * as multer from 'multer';
 import * as express from 'express';
 import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
-import * as dotenv from 'dotenv';
 
-dotenv.config();
-
-import mainResolver from './resolvers/pinterest.resolver';
-import { API_ENDPOINT, API_VERSION, PORT, RESOURCE_NAME } from './constants';
+import { API_ENDPOINT, API_VERSION, PORT } from './server.constants';
 import { makeExecutableSchema } from 'graphql-tools';
 import typeDefs from './typeDefs';
 import * as bodyParser from 'body-parser';
+import pinResolver from './graphql/pins/pin.resolver';
+import userResolver from './graphql/user/user.resolver';
+import boardResolver from './graphql/boards/board.resolver';
+import scalarResolverFunctions from './graphql/scalars/scalars.resolver';
 
 const schema = makeExecutableSchema({
-  resolvers: [ mainResolver ],
-  typeDefs: typeDefs,
+  resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
+  typeDefs,
 });
 
 async function bootstrap() {
 
-  const resolvers = mainResolver;
   const app = express();
+
   app.use(bodyParser.json(), multer().any(), (req, res, next) => next());
+
   app.post(API_ENDPOINT, graphqlExpress({
       schema,
     }));
 
-  app.get(`${API_ENDPOINT}/graphiql`, graphiqlExpress({ endpointURL: API_ENDPOINT })); // if you want GraphiQL enabled
+  app.get(`${API_ENDPOINT}/graphiql`, graphiqlExpress({ endpointURL: API_ENDPOINT }));
 
-  console.log('running');
   await app.listen(+PORT || 3000);
 }
 

@@ -1,8 +1,10 @@
 type Mutation {
-  #################### PIN MUTATIONS ####################
+#################### PIN MUTATIONS ####################
 
   createPin(
-    board: String!, # In the format <username>/<board_name>
+    creator: ID!
+    name: String!
+    board: String, # In the format <username>/<board_name>
     note: String!,
     link:String,
     image: ImageScalar,        # image we want to upload via multipart form data
@@ -10,44 +12,49 @@ type Mutation {
     image_base64: String # Base64 encoded image
   ): Pin                 # image || image_url || image_base64 mandatory
   # default response returns the note, URL, link and ID of the created Pin.
+  # DONE
 
   updatePin(
-    pin: ID!, # ID of pin to change
+    _id: ID!, # ID of pin to change
     board: String, # The board you want to move the Pin to, in the format <username>/<board_name>.
     note: String, # The new Pin description.
     link: String # The new Pin link.
   ): Pin
+  # DONE
 
-  deletePin( pin:ID!): Pin
+  deletePin( _id:ID!): Pin
+  # DONE
 
-  #################### USER MUTATIONS ####################
+#################### USER MUTATIONS ####################
 
   # My idea to make User
   createUser(
     username: String!,
+    created_at: Date,
     first_name: String,
     last_name: String,
     bio: String
-  ): User
+  ): User # DONE
 
-  createFollowingBoard(board: String!): Board # board format = <username>/<board_name>.
-  # Makes the authenticated user follow the specified board.
-  # A empty response (or lack of error code) indicates success.
-
-  createFollowingUser(user: String!): User # user = The username of the user that you want to follow.
+  createFollowingUser(followerID: String!, _id: String!): User # user = The username of the user that you want to follow.
   # Makes the authenticated user follow the specified user.
   # A empty response (or lack of error code) indicates success.
+  # DONE
 
+  deleteFollowingUser(followerID: String!, _id: String!): User # userID = username OR user ID
+  # Makes the authenticated user unfollow the specified user.
+  # A empty response (or lack of error code) indicates success.
+  # DONE
 
   deleteFollowingBoard(board: String!): Board # board format = <username>/<board_name>.
   # Makes the authenticated user unfollow the specified board.
   # A empty response (or lack of error code) indicates success.
 
-  deleteFollowingUser(user: String): User # user = username OR user ID
-  # Makes the authenticated user unfollow the specified user.
+  createFollowingBoard(board: String!): Board # board format = <username>/<board_name>.
+  # Makes the authenticated user follow the specified board.
   # A empty response (or lack of error code) indicates success.
 
-  #################### BOARD MUTATIONS ####################
+#################### BOARD MUTATIONS ####################
 
   createBoard(name: String!, description: String): Board
   # Creates a board for the authenticated user.
