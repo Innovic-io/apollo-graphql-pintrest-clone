@@ -1,4 +1,5 @@
 import { ObjectID } from 'mongodb';
+
 import IUser from '../user/user.interface';
 
 export default interface IBoard {

@@ -5,7 +5,6 @@ import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR } from '../common/common.constants'
 import { DatabaseService } from '../common/database.service';
 import IPin from './pin.interface';
 import UserService from '../user/user.service';
-import { type } from 'os';
 
 export default class PinService {
 
@@ -22,7 +21,8 @@ export default class PinService {
 
   async getCreatorById(_id) {
 
-    return  await (await new UserService()).getUserByID(_id);
+    // @TODO double await? :)
+    return await (await new UserService()).getUserByID(_id);
   }
 
   async getPin(pinID: ObjectID | string): Promise<IPin> {
@@ -42,8 +42,8 @@ export default class PinService {
     }
 
     newPin.creator = createObjectID(newPin.creator);
-    if (!newPin.created_at) {
 
+    if (!newPin.created_at) {
       newPin.created_at = new Date();
     }
 
@@ -55,13 +55,13 @@ export default class PinService {
 
   async getAllPins() {
 
-    const result = await this.database
-      .find({});
+    const result = await this.database.find({});
 
     return result.toArray();
   }
 
   async updatePin(sentPin: IPin) {
+
     const exist = await findByElementKey<IPin>(this.database, '_id', createObjectID(sentPin._id));
 
     if (!exist) {
@@ -69,6 +69,7 @@ export default class PinService {
     }
 
     delete sentPin._id;
+
     const result = await this.database
       .findOneAndUpdate({_id: exist._id},
       { $set: sentPin },
@@ -80,16 +81,14 @@ export default class PinService {
 
   async deletePin(_id: string | ObjectID) {
 
-    const result = await this.database
-      .findOneAndDelete({_id: createObjectID(_id)});
+    const result = await this.database.findOneAndDelete({_id: createObjectID(_id)});
 
     return result.value;
   }
 
   async getUserPins(_id: string | ObjectID) {
 
-    const result = await this.database
-      .find({creator: createObjectID(_id)});
+    const result = await this.database.find({creator: createObjectID(_id)});
 
     return result.toArray();
   }

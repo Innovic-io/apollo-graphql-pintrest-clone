@@ -13,9 +13,7 @@ export default class UserService {
   private database: Collection;
 
   constructor() {
-
-    DatabaseService.getDB()
-      .then((value) => this.database = value.collection(this.collectionName));
+    DatabaseService.getDB().then((value) => this.database = value.collection(this.collectionName));
   }
 
   async getUserByID(userID: string | ObjectID): Promise<IUser> {
@@ -48,8 +46,7 @@ export default class UserService {
 
   async startFollowing(_id: string, followerID: string) {
 
-    const followee = await findByElementKey<IUser>(this.database,
-      '_id', createObjectID(_id));
+    const followee = await findByElementKey<IUser>(this.database, '_id', createObjectID(_id));
 
     if (!followee) {
       throw new Error(DOES_NOT_EXIST('Followee'));
@@ -69,10 +66,12 @@ export default class UserService {
 
     const user = await this.getUserByID(createObjectID(_id));
 
+    // @TODO if there is no user, return user?
     if (!user) {
       return user;
     }
 
+    // @TODO if there is no user following, return user following?
     if (!user.following) {
       return user.following;
     }
@@ -80,8 +79,8 @@ export default class UserService {
     const result = user
       .following
       .map(async (oneUserID) => await this.getUserByID(oneUserID));
-    return await Observable.forkJoin(result).toPromise();
 
+    return await Observable.forkJoin(result).toPromise();
   }
 
   async getFollowers(_id: string) {
@@ -108,8 +107,7 @@ export default class UserService {
 
   async getAll() {
 
-    const result = await this.database
-      .find({});
+    const result = await this.database.find({});
 
     return result.toArray();
   }

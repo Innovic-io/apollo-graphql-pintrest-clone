@@ -5,6 +5,7 @@ const userService = new UserService();
 
 const userResolver = {
   Query: {
+
     async getAllUsers(parent) {
 
       return await userService.getAll();
@@ -27,7 +28,9 @@ const userResolver = {
   },
 
   Mutation: {
+
     async createUser(parent, args: IUser) {
+
       return await userService.createUser(args);
     },
 
@@ -41,6 +44,7 @@ const userResolver = {
       return await userService.removeFollowing(_id, followerID);
     },
   },
+
   User: {
 
     async following(users) {

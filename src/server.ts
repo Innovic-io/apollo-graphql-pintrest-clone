@@ -1,11 +1,11 @@
 import * as multer from 'multer';
 import * as express from 'express';
 import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
+import { makeExecutableSchema } from 'graphql-tools';
+import * as bodyParser from 'body-parser';
 
 import { API_ENDPOINT, API_VERSION, PORT } from './server.constants';
-import { makeExecutableSchema } from 'graphql-tools';
 import typeDefs from './typeDefs';
-import * as bodyParser from 'body-parser';
 import pinResolver from './graphql/pins/pin.resolver';
 import userResolver from './graphql/user/user.resolver';
 import boardResolver from './graphql/boards/board.resolver';
@@ -23,8 +23,8 @@ async function bootstrap() {
   app.use(bodyParser.json(), multer().any(), (req, res, next) => next());
 
   app.post(API_ENDPOINT, graphqlExpress({
-      schema,
-    }));
+    schema,
+  }));
 
   app.get(`${API_ENDPOINT}/graphiql`, graphiqlExpress({ endpointURL: API_ENDPOINT }));
 
