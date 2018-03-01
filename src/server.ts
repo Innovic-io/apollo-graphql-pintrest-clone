@@ -27,7 +27,7 @@ async function bootstrap() {
 
   app.get(`${API_ENDPOINT}/graphiql`, graphiqlExpress({ endpointURL: API_ENDPOINT })); // if you want GraphiQL enabled
 
-  console.log('rumning');
+  console.log('running');
   await app.listen(+PORT || 3000);
 }
 
