@@ -9,3 +9,6 @@ export const DB_PORT = process.env.MONGO_PORT;
 export const DB_VOLUME_LOCATION = process.env.DB_VOLUME_LOCATION;
 export const DATABASE_TOKEN = 'DbMongoToken';
 export const DATABASE_URI = `mongodb://mongo:${DB_PORT}/${DB_NAME}`;
+
+export const MONITOR_NAME = 'Monitor';
+export const PM2_PORT = 4545;

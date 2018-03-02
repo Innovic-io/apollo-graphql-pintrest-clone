@@ -16,7 +16,8 @@
     "graphql-tools": "^2.21.0",
     "mongodb": "^3.0.2",
     "multer": "^1.3.0",
-    "rxjs": "latest"
+    "rxjs": "latest",
+    "request-promise": "latest"
   },
   "devDependencies": {
     "@types/jest": "^21.1.10",

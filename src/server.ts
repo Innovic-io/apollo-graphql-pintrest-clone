@@ -3,8 +3,9 @@ import * as express from 'express';
 import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as bodyParser from 'body-parser';
+import * as requestPromise from 'request-promise';
 
-import { API_ENDPOINT, API_VERSION, PORT } from './server.constants';
+import { API_ENDPOINT, API_VERSION, MONITOR_NAME, PM2_PORT, PORT } from './server.constants';
 import typeDefs from './typeDefs';
 import pinResolver from './graphql/pins/pin.resolver';
 import userResolver from './graphql/user/user.resolver';
@@ -22,6 +23,8 @@ async function bootstrap() {
 
   app.use(bodyParser.json(), multer().any(), (req, res, next) => next());
 
+  await startMonitor(app);
+
   app.post(API_ENDPOINT, graphqlExpress({
     schema,
   }));
@@ -29,6 +32,16 @@ async function bootstrap() {
   app.get(`${API_ENDPOINT}/graphiql`, graphiqlExpress({ endpointURL: API_ENDPOINT }));
 
   await app.listen(+PORT || 3000);
+}
+
+function startMonitor(app) {
+  app.get(MONITOR_NAME, async (req, res) => {
+    const [ host ] = req.headers.host.split(':');
+
+    return await requestPromise({
+      uri: `${req.protocol.trim()}://${host}:${PM2_PORT}`
+    });
+  });
 }
 
 bootstrap();

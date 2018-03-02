@@ -1,0 +1,9 @@
+{
+  "apps": [{
+    "name": "PinterestApolloGraphql",
+    "script": "./dist/out-tsc/server.js",
+    "watch": false,
+    "exec_mode"  : "cluster",
+    "instances": 0
+  }]
+}
