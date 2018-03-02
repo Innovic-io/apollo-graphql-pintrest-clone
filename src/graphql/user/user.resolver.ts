@@ -1,58 +1,69 @@
 import UserService from './user.service';
 import IUser from './user.interface';
+import { IAuthorization } from '../../authorization/authorization.interface';
 
 const userService = new UserService();
+
+// if something need to be verified, in context field is
+// results of authorization.middleware
 
 const userResolver = {
   Query: {
 
-    async getAllUsers(parent) {
+    async getAllUsers(parent, args) {
 
       return await userService.getAll();
     },
 
     async getUser(parent, { _id }) {
 
-      return await userService.getUserByID(_id);
+      return await userService.getByID(_id);
     },
 
-    async getUserFollowings(parent, { _id }) {
+    async getUserFollowings(parent, {}, context: IAuthorization) {
 
-      return await userService.getFollowing(_id);
+      return await userService.getFollowing(context._id, 'following');
     },
 
-    async getUserFollowers(parent, { _id }) {
+    async getUserFollowers(parent, {}, context: IAuthorization) {
 
-      return await userService.getFollowers(_id);
+      return await userService.getFollowers(context._id);
     },
   },
 
   Mutation: {
+
+    async loginUser(parent, { username, password }) {
+
+      return await userService.login(username, password);
+    },
 
     async createUser(parent, args: IUser) {
 
       return await userService.createUser(args);
     },
 
-    async createFollowingUser(parent, { followerID, _id }) {
+    async createFollowingUser(parent, { _id }, context: IAuthorization) {
 
-      return await userService.startFollowing(_id, followerID);
+      return await userService.startFollowingUser(_id, context._id);
     },
 
-    async deleteFollowingUser(parent, { followerID, _id }) {
+    async deleteFollowingUser(parent, {_id }, context: IAuthorization) {
 
-      return await userService.removeFollowing(_id, followerID);
+      return await userService.removeFollowing(_id, context._id);
     },
   },
 
   User: {
 
-    async following(users) {
+    async following(users: IUser) {
 
-      return await userService.getFollowing(users._id);
+      return await userService.getFollowing(users._id, 'following');
     },
 
-    async boards(users) {
+    async boards(users: IUser) {
+
+      return await userService.getFollowing(users._id, 'boards');
 
     },
   },

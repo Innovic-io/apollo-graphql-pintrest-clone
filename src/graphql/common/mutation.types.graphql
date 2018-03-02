@@ -30,18 +30,24 @@ type Mutation {
   # My idea to make User
   createUser(
     username: String!,
+    password: String!,
     created_at: Date,
     first_name: String,
     last_name: String,
     bio: String
   ): User # DONE
 
-  createFollowingUser(followerID: String!, _id: String!): User # user = The username of the user that you want to follow.
+  loginUser(
+    username: String!,
+    password: String!
+  ): String
+
+  createFollowingUser(_id: String!): User # user = The username of the user that you want to follow.
   # Makes the authenticated user follow the specified user.
   # A empty response (or lack of error code) indicates success.
   # DONE
 
-  deleteFollowingUser(followerID: String!, _id: String!): User # userID = username OR user ID
+  deleteFollowingUser(_id: String!): User # userID = username OR user ID
   # Makes the authenticated user unfollow the specified user.
   # A empty response (or lack of error code) indicates success.
   # DONE
@@ -68,6 +74,6 @@ type Mutation {
   # Changes the chosen board’s name and/or description.
   # The default response returns the ID, URL and name of the edited board.
 
-  deleteBoard(board: String!): Board
+  deleteBoard(_id: ID!): Board
   # Deletes the specified board. This action is permanent and cannot be undone.
 }

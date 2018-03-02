@@ -1,11 +1,13 @@
 import { Observable } from 'rxjs/Observable';
 import { Collection, ObjectID } from 'mongodb';
 import 'rxjs/add/observable/forkJoin';
+import * as webToken from 'jsonwebtoken';
 
 import IUser from './user.interface';
 import { createObjectID, findByElementKey } from '../common/helper.functions';
 import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR } from '../common/common.constants';
 import { DatabaseService } from '../common/database.service';
+import { privateKey } from '../../server.constants';
 
 export default class UserService {
 
@@ -16,14 +18,14 @@ export default class UserService {
     DatabaseService.getDB().then((value) => this.database = value.collection(this.collectionName));
   }
 
-  async getUserByID(userID: string | ObjectID): Promise<IUser> {
+  async getByID(userID: string | ObjectID): Promise<IUser> {
 
-    return await findByElementKey<IUser>(this.database, '_id', createObjectID(userID)) as IUser;
+    return await findByElementKey<IUser>(this.database, '_id', createObjectID(userID));
   }
 
   async getUserByUsername(username: string): Promise<IUser>  {
 
-    return await findByElementKey(this.database, 'username', username) as IUser;
+    return await findByElementKey<IUser>(this.database, 'username', username);
   }
 
   async createUser(newUser: IUser) {
@@ -39,12 +41,16 @@ export default class UserService {
 
     const inserted = await this.database.insertOne(newUser);
 
-    const [ resultingObject ] = inserted.ops;
+    const [ resultingObject ] = inserted.ops as IUser[];
 
     return resultingObject;
   }
 
-  async startFollowing(_id: string, followerID: string) {
+  async startFollowingBoard(boardID: string | ObjectID, followerID: ObjectID) {
+
+  }
+
+  async startFollowingUser(_id: string, followerID: ObjectID) {
 
     const followee = await findByElementKey<IUser>(this.database, '_id', createObjectID(_id));
 
@@ -54,7 +60,7 @@ export default class UserService {
 
     const result = await this.database
       .findOneAndUpdate(
-      { _id: createObjectID(followerID) },
+      { _id: followerID },
       { $addToSet: { following: createObjectID(_id)}},
       { returnOriginal: false },
       );
@@ -62,28 +68,21 @@ export default class UserService {
     return result.value;
   }
 
-  async getFollowing(_id) {
+  async getFollowing(_id, type: string) {
 
-    const user = await this.getUserByID(createObjectID(_id));
+    const user = await this.getByID(createObjectID(_id));
 
-    // @TODO if there is no user, return user?
-    if (!user) {
-      return user;
+    if (!user || !user[type]) {
+      return null;
     }
 
-    // @TODO if there is no user following, return user following?
-    if (!user.following) {
-      return user.following;
-    }
-
-    const result = user
-      .following
-      .map(async (oneUserID) => await this.getUserByID(oneUserID));
+    const result = user[type]
+      .map(async (oneUserID) => await this.getByID(oneUserID));
 
     return await Observable.forkJoin(result).toPromise();
   }
 
-  async getFollowers(_id: string) {
+  async getFollowers(_id: string | ObjectID) {
 
     const result = await this.database
       .find(
@@ -94,10 +93,10 @@ export default class UserService {
     return result.toArray();
   }
 
-  async removeFollowing(_id: string, followerID: string) {
+  async removeFollowing(_id: string, followerID: ObjectID) {
 
     const result = await this.database
-      .findOneAndUpdate({_id: createObjectID(followerID)},
+      .findOneAndUpdate({_id: followerID},
         {
         $pull: { following: {$in: [ createObjectID(_id) ]} },
       });
@@ -108,7 +107,17 @@ export default class UserService {
   async getAll() {
 
     const result = await this.database.find({});
-
     return result.toArray();
+  }
+
+  async login(username: string, password: string) {
+
+    const user = await this.database.findOne<IUser>({username, password});
+
+    return webToken.sign({
+      username: user.username,
+      password: user.password,
+      _id: user._id
+    }, privateKey, { expiresIn: 60 * 60 });
   }
 }

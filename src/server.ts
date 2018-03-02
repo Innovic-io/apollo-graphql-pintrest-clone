@@ -11,6 +11,8 @@ import pinResolver from './graphql/pins/pin.resolver';
 import userResolver from './graphql/user/user.resolver';
 import boardResolver from './graphql/boards/board.resolver';
 import scalarResolverFunctions from './graphql/scalars/scalars.resolver';
+import AuthorizationMiddleware from './authorization/authorization.middleware';
+import { IAuthorization } from './authorization/authorization.interface';
 
 const schema = makeExecutableSchema({
   resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
@@ -25,9 +27,15 @@ async function bootstrap() {
 
   await startMonitor(app);
 
-  app.post(API_ENDPOINT, graphqlExpress({
-    schema,
-  }));
+  app.post(API_ENDPOINT,
+    AuthorizationMiddleware,
+    graphqlExpress((req) => Object.assign({
+      schema,
+      // tslint:disable-next-line
+      context: req['user'] as IAuthorization,
+    })),
+
+  );
 
   app.get(`${API_ENDPOINT}/graphiql`, graphiqlExpress({ endpointURL: API_ENDPOINT }));
 
@@ -35,11 +43,11 @@ async function bootstrap() {
 }
 
 function startMonitor(app) {
-  app.get(MONITOR_NAME, async (req, res) => {
+  app.get(`${API_ENDPOINT}/${MONITOR_NAME}`, async (req, res) => {
     const [ host ] = req.headers.host.split(':');
 
     return await requestPromise({
-      uri: `${req.protocol.trim()}://${host}:${PM2_PORT}`
+      uri: `${req.protocol.trim()}://${host}:${PM2_PORT}`,
     });
   });
 }

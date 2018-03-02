@@ -1,4 +1,4 @@
-import { ObjectID } from 'bson';
+import { ObjectID } from 'mongodb';
 import IBoard from '../boards/board.interface';
 
 export default interface IPin {

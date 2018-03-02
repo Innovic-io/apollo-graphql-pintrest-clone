@@ -7,7 +7,7 @@ type Query {
   getPin(pin: ID!): Pin
   # DONE
 
-  getUserPins(_id: String!, cursor: String): [Pin]
+  getUserPins(cursor: String): [Pin]
   # DONE
 
   searchPins(query: String): Pin
@@ -24,10 +24,10 @@ type Query {
   getAllUsers: [User]
   # DONE
 
-  getUserFollowers(_id: String!, cursor: String): [User]
+  getUserFollowers(cursor: String): [User]
   # DONE
 
-  getUserFollowings(_id: String!, cursor: String): [User]
+  getUserFollowings(cursor: String): [User]
   # DONE
 
   getUserBoards(_id: String!): [Board]

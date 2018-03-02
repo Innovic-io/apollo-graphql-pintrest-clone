@@ -12,3 +12,5 @@ export const DATABASE_URI = `mongodb://mongo:${DB_PORT}/${DB_NAME}`;
 
 export const MONITOR_NAME = 'Monitor';
 export const PM2_PORT = 4545;
+
+export const privateKey = '?TM!A%ibGacO4->l:Q`YIXh/N!c,45Kh>V1#eg6fbJWAg~sg3Mo):}Gx$uW_|TO';

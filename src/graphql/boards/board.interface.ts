@@ -1,17 +1,14 @@
 import { ObjectID } from 'mongodb';
 
-import IUser from '../user/user.interface';
-
 export default interface IBoard {
-  id: ObjectID;
+  _id: ObjectID;
   name: string;
   url: string;
   description: string;
-  creator: IUser;
+  creator: ObjectID;
   created_at: Date;
   numberOfPins: number;
-  followers: number;
-  users: IUser[];
-  collaborators: IUser[];
+  followers: ObjectID[];
+  collaborators: ObjectID[];
   image: Blob;
 }

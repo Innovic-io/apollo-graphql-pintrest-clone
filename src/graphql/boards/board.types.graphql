@@ -6,8 +6,7 @@ type Board {
   creator: User
   created_at: Date
   numberOfPins: Int
-  followers: Int
-  users: [User]
+  followers: [User]
   collaborators: [User]
   image: Image
 }

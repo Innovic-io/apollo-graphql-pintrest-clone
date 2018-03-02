@@ -1,10 +1,9 @@
 import { Collection, ObjectID } from 'mongodb';
 
-import { createObjectID, findByElementKey } from '../common/helper.functions';
-import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR } from '../common/common.constants';
+import { createObjectID, findByElementKey, getServiceById } from '../common/helper.functions';
+import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, PERMISSION_DENIED, ServerEnum } from '../common/common.constants';
 import { DatabaseService } from '../common/database.service';
 import IPin from './pin.interface';
-import UserService from '../user/user.service';
 
 export default class PinService {
 
@@ -19,21 +18,29 @@ export default class PinService {
       });
   }
 
-  async getCreatorById(_id) {
+  async getByID(pinID: ObjectID | string): Promise<IPin> {
 
-    // @TODO double await? :)
-    return await (await new UserService()).getUserByID(_id);
+    return await findByElementKey<IPin>(this.database, '_id', createObjectID(pinID));
+
   }
 
-  async getPin(pinID: ObjectID | string): Promise<IPin> {
+  async getUserPins(_id: string | ObjectID) {
 
-    return await findByElementKey(this.database, '_id', createObjectID(pinID)) as IPin;
+    const result = await this.database.find({creator: createObjectID(_id)});
 
+    return result.toArray();
+  }
+
+  async getAllPins() {
+
+    const result = await this.database.find({});
+
+    return result.toArray();
   }
 
   async createPin(newPin: IPin) {
 
-    if (!await this.getCreatorById(newPin.creator)) {
+    if (!await getServiceById(newPin.creator, ServerEnum.USERS)) {
       throw new Error(DOES_NOT_EXIST('Creator '));
     }
 
@@ -53,14 +60,9 @@ export default class PinService {
     return resultingObject;
   }
 
-  async getAllPins() {
+  async updatePin(sentPin: IPin, creatorID: ObjectID) {
 
-    const result = await this.database.find({});
-
-    return result.toArray();
-  }
-
-  async updatePin(sentPin: IPin) {
+    await this.checkPinPermission(sentPin._id, creatorID);
 
     const exist = await findByElementKey<IPin>(this.database, '_id', createObjectID(sentPin._id));
 
@@ -79,17 +81,28 @@ export default class PinService {
     return result.value;
   }
 
-  async deletePin(_id: string | ObjectID) {
+  async deletePin(_id: string | ObjectID, creatorID: ObjectID) {
 
-    const result = await this.database.findOneAndDelete({_id: createObjectID(_id)});
+    await this.checkPinPermission(_id, creatorID);
+
+    const result = await this.database.findOneAndDelete({
+      _id: createObjectID(_id),
+    });
 
     return result.value;
   }
 
-  async getUserPins(_id: string | ObjectID) {
+  async checkPinPermission(_id, creator) {
 
-    const result = await this.database.find({creator: createObjectID(_id)});
+    const result = await findByElementKey<IPin>(this.database,
+      '_id', createObjectID(_id));
 
-    return result.toArray();
+    if (!result.creator.equals(creator)) {
+      throw new Error(PERMISSION_DENIED);
+    }
+    return {
+      valid: true,
+      creator,
+    };
   }
 }
