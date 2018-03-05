@@ -1,22 +1,19 @@
 type Mutation {
-#################### PIN MUTATIONS ####################
 
   createPin(
-    creator: ID!
     name: String!
-    board: String, # In the format <username>/<board_name>
+    board: ID!, # In the format <username>/<board_name>
     note: String!,
     link:String,
     image: ImageScalar,        # image we want to upload via multipart form data
     image_url: String    # link to image we want to Pin
     image_base64: String # Base64 encoded image
   ): Pin                 # image || image_url || image_base64 mandatory
-  # default response returns the note, URL, link and ID of the created Pin.
   # DONE
 
   updatePin(
     _id: ID!, # ID of pin to change
-    board: String, # The board you want to move the Pin to, in the format <username>/<board_name>.
+    board: ID, # The board you want to move the Pin to, in the format <username>/<board_name>.
     note: String, # The new Pin description.
     link: String # The new Pin link.
   ): Pin
@@ -25,9 +22,6 @@ type Mutation {
   deletePin( _id:ID!): Pin
   # DONE
 
-#################### USER MUTATIONS ####################
-
-  # My idea to make User
   createUser(
     username: String!,
     password: String!,
@@ -35,45 +29,47 @@ type Mutation {
     first_name: String,
     last_name: String,
     bio: String
-  ): User # DONE
+  ): String
+  # Return token for user
+  # DONE
 
   loginUser(
     username: String!,
     password: String!
   ): String
+  # Return token for user
+  # DONE
 
-  createFollowingUser(_id: String!): User # user = The username of the user that you want to follow.
+  createFollowingUser(_id: ID!): User # user = The username of the user that you want to follow.
   # Makes the authenticated user follow the specified user.
-  # A empty response (or lack of error code) indicates success.
   # DONE
 
-  deleteFollowingUser(_id: String!): User # userID = username OR user ID
+  deleteFollowingUser(_id: ID!): User # userID = username OR user ID
   # Makes the authenticated user unfollow the specified user.
-  # A empty response (or lack of error code) indicates success.
   # DONE
 
-  deleteFollowingBoard(board: String!): Board # board format = <username>/<board_name>.
-  # Makes the authenticated user unfollow the specified board.
-  # A empty response (or lack of error code) indicates success.
-
-  createFollowingBoard(board: String!): Board # board format = <username>/<board_name>.
+  startFollowingBoard(_id: ID!): Board # board format = <username>/<board_name>.
   # Makes the authenticated user follow the specified board.
-  # A empty response (or lack of error code) indicates success.
+  # DONE
 
-#################### BOARD MUTATIONS ####################
+  stopFollowingBoard(_id: ID!): Board
+  # Makes the authenticated user unfollow the specified board.
+  # DONE
 
   createBoard(name: String!, description: String): Board
   # Creates a board for the authenticated user.
-  # The default response returns the ID, URL and name of the created board.
+  # DONE
 
   updateBoard(
-    board: String!,     # The board you want to edit in the format <username>/<board_name>
+    _id: ID!,     # The board you want to edit in the format <username>/<board_name>
     name: String,       # new Board name
     description: String # new board description
   ): Board
   # Changes the chosen board’s name and/or description.
   # The default response returns the ID, URL and name of the edited board.
+  # DONE
 
   deleteBoard(_id: ID!): Board
   # Deletes the specified board. This action is permanent and cannot be undone.
+  # DONE
 }

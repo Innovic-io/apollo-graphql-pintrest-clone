@@ -1,6 +1,7 @@
 import UserService from './user.service';
 import IUser from './user.interface';
 import { IAuthorization } from '../../authorization/authorization.interface';
+import { USERS_ELEMENT } from './user.contants';
 
 const userService = new UserService();
 
@@ -15,14 +16,14 @@ const userResolver = {
       return await userService.getAll();
     },
 
-    async getUser(parent, { _id }) {
+    async getUser(parent, { }, context: IAuthorization) {
 
-      return await userService.getByID(_id);
+      return await userService.getByID(context._id);
     },
 
     async getUserFollowings(parent, {}, context: IAuthorization) {
 
-      return await userService.getFollowing(context._id, 'following');
+      return await userService.getFollowing(context._id, USERS_ELEMENT.FOLLOWING);
     },
 
     async getUserFollowers(parent, {}, context: IAuthorization) {
@@ -50,7 +51,7 @@ const userResolver = {
 
     async deleteFollowingUser(parent, {_id }, context: IAuthorization) {
 
-      return await userService.removeFollowing(_id, context._id);
+      return await userService.removeFromSet(_id, context._id, USERS_ELEMENT.FOLLOWING);
     },
   },
 
@@ -58,13 +59,17 @@ const userResolver = {
 
     async following(users: IUser) {
 
-      return await userService.getFollowing(users._id, 'following');
+      return await userService.getFollowing(users._id, USERS_ELEMENT.FOLLOWING);
+    },
+
+    async pins(users: IUser) {
+
+      return await userService.getFollowing(users._id, USERS_ELEMENT.PINS);
     },
 
     async boards(users: IUser) {
 
-      return await userService.getFollowing(users._id, 'boards');
-
+      return await userService.getFollowing(users._id, USERS_ELEMENT.BOARDS);
     },
   },
 };

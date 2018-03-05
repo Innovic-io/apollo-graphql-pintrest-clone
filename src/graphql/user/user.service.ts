@@ -1,17 +1,20 @@
 import { Observable } from 'rxjs/Observable';
 import { Collection, ObjectID } from 'mongodb';
 import 'rxjs/add/observable/forkJoin';
-import * as webToken from 'jsonwebtoken';
 
 import IUser from './user.interface';
-import { createObjectID, findByElementKey } from '../common/helper.functions';
-import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR } from '../common/common.constants';
+import { createObjectID, findByElementKey, getServiceById } from '../common/helper.functions';
+import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, SERVICE_ENUM } from '../common/common.constants';
 import { DatabaseService } from '../common/database.service';
-import { privateKey } from '../../server.constants';
+import { hashPassword, generateToken, comparePasswords, IHashedPassword } from '../common/cryptography';
+import { USERS_ELEMENT } from './user.contants';
 
+/**
+ * Service to control data of Board type
+ */
 export default class UserService {
 
-  private collectionName = 'users';
+  private collectionName =  SERVICE_ENUM.USERS;
   private database: Collection;
 
   constructor() {
@@ -30,45 +33,64 @@ export default class UserService {
 
   async createUser(newUser: IUser) {
 
-    if (await findByElementKey(this.database, 'username', newUser.username)) {
+    if (await findByElementKey<IUser>(this.database, 'username', newUser.username)) {
       throw Error(ALREADY_EXIST_ERROR('Username'));
     }
 
-    if (!newUser.created_at) {
+    const hashedPassword: IHashedPassword = await hashPassword(newUser.password);
 
-      newUser.created_at = new Date();
-    }
+    const inputUser = {...newUser,
+      password: hashedPassword.hash,
+      salt: hashedPassword.salt,
+      created_at: newUser.created_at || new Date(),
+    };
 
-    const inserted = await this.database.insertOne(newUser);
+    const inserted = await this.database.insertOne(inputUser);
 
     const [ resultingObject ] = inserted.ops as IUser[];
 
-    return resultingObject;
+    return this.makeToken(resultingObject, newUser.password);
   }
 
-  async startFollowingBoard(boardID: string | ObjectID, followerID: ObjectID) {
-
-  }
-
-  async startFollowingUser(_id: string, followerID: ObjectID) {
-
-    const followee = await findByElementKey<IUser>(this.database, '_id', createObjectID(_id));
-
-    if (!followee) {
-      throw new Error(DOES_NOT_EXIST('Followee'));
-    }
+  async createdBoard(boardID: ObjectID, followerID: ObjectID) {
 
     const result = await this.database
       .findOneAndUpdate(
-      { _id: followerID },
-      { $addToSet: { following: createObjectID(_id)}},
-      { returnOriginal: false },
+        { _id: followerID },
+        { $addToSet: { boards: boardID}},
+        { returnOriginal: false },
       );
 
     return result.value;
   }
 
-  async getFollowing(_id, type: string) {
+  async addToSet(_id: ObjectID, elementToAdd: any, elementColumn: USERS_ELEMENT): Promise<IUser> {
+
+    const result = await this.database
+      .findOneAndUpdate(
+        { _id },
+        { $addToSet: { [elementColumn]: elementToAdd }},
+        { returnOriginal: false },
+      );
+
+    return result.value;
+
+  }
+
+  async startFollowingUser(_id: string, followerID: ObjectID) {
+
+    const followee = await this.getByID(createObjectID(_id));
+
+    if (!followee) {
+      throw new Error(DOES_NOT_EXIST('Followee'));
+    }
+
+    return await this.addToSet(createObjectID(followerID), followee._id, USERS_ELEMENT.FOLLOWING);
+  }
+
+  async getFollowing(_id: string | ObjectID, type: USERS_ELEMENT) {
+
+    const arrElem: SERVICE_ENUM = (type === USERS_ELEMENT.FOLLOWING) ? (SERVICE_ENUM.USERS) : SERVICE_ENUM[type.toUpperCase()];
 
     const user = await this.getByID(createObjectID(_id));
 
@@ -77,7 +99,7 @@ export default class UserService {
     }
 
     const result = user[type]
-      .map(async (oneUserID) => await this.getByID(oneUserID));
+      .map(async (oneID) => await getServiceById(oneID, arrElem));
 
     return await Observable.forkJoin(result).toPromise();
   }
@@ -93,12 +115,12 @@ export default class UserService {
     return result.toArray();
   }
 
-  async removeFollowing(_id: string, followerID: ObjectID) {
+  async removeFromSet(_id: string | ObjectID, followerID: ObjectID, type: USERS_ELEMENT) {
 
     const result = await this.database
       .findOneAndUpdate({_id: followerID},
         {
-        $pull: { following: {$in: [ createObjectID(_id) ]} },
+        $pull: { [type]: {$in: [ createObjectID(_id) ]} },
       });
 
     return result.value;
@@ -112,12 +134,17 @@ export default class UserService {
 
   async login(username: string, password: string) {
 
-    const user = await this.database.findOne<IUser>({username, password});
+    const user = await this.database.findOne<IUser>({ username });
 
-    return webToken.sign({
-      username: user.username,
-      password: user.password,
-      _id: user._id
-    }, privateKey, { expiresIn: 60 * 60 });
+    return await this.makeToken(user, password);
+  }
+
+  private async makeToken(user: IUser, password: string) {
+
+    if (!user || !await comparePasswords(password, user.salt, user.password)) {
+      throw new Error('Wrong username or password');
+    }
+
+    return await generateToken({ _id: user._id });
   }
 }

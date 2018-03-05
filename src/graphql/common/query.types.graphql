@@ -1,6 +1,4 @@
 type Query {
-#################### PIN QUERYS ####################
-
   getAllPins: [Pin]
   # DONE
 
@@ -12,13 +10,11 @@ type Query {
 
   searchPins(query: String): Pin
 
-  getPinsFromBoard(board: String,
+  getPinsFromBoard(board: ID!,
     cursor: String): [Pin]
-  # The default response returns a list of Pins on the board with their ID, URL, link and description.
+  # DONE
 
-#################### USER QUERYS ####################
-  getUser(_id: String!): User
-  # The default response returns the first and last name, ID and URL of the authenticated user.
+  getUser: User
   # DONE
 
   getAllUsers: [User]
@@ -30,14 +26,14 @@ type Query {
   getUserFollowings(cursor: String): [User]
   # DONE
 
-  getUserBoards(_id: String!): [Board]
-  # The default response returns a list of the authenticated user’s public boards, including the URL, ID and name.
+  getUserBoards: [Board]
+  # DONE
 
   # query - if we want to search for specific pin
   # example /search/pins/?q=places%20to%20see%20before%20you%20die
-#################### BOARD QUERYS ####################
-  getBoard(board: String!): Board #  board - The board you want to fetch in the format <username>/<board_name>
-  # The default response returns the ID, URL and name of the specified board.
+
+  getBoard(board: ID!): Board #  board - The board you want to fetch in the format <username>/<board_name>
+  #DONE
 
   searchBoard(boardName: String): Board
   # example /search/boards/?q=places%20to%20see%20before%20you%20die&rs=filter
@@ -46,6 +42,7 @@ type Query {
   # Boards that Pinterest would suggest to the authenticated user if they were to save the specified Pin.
   # The default response: ID, URL and name of the boards.
 
-  getFollowingBoards(_id: String!, cursor: String): [Board] # _id = User ID
+  getBoardFollowing(cursor: String): [Board]
+  # DONE
 }
 # cursor explonation - Pass the cursor value in your next request to receive the next 25 items in the list.

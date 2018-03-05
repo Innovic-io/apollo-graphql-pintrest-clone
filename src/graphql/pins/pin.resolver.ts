@@ -1,7 +1,8 @@
 import PinService from './pin.service';
 import { IAuthorization } from '../../authorization/authorization.interface';
 import { getServiceById } from '../common/helper.functions';
-import { ServerEnum } from '../common/common.constants';
+import { SERVICE_ENUM } from '../common/common.constants';
+import IPin from './pin.interface';
 
 const pinService = new PinService();
 
@@ -22,12 +23,16 @@ const pinResolver = {
     async getUserPins(parent, {}, context: IAuthorization) {
       return await pinService.getUserPins(context._id);
     },
+
+    async getPinsFromBoard(parent, {board}, context: IAuthorization) {
+      return await pinService.getPinsFromBoard(board, context._id);
+    },
   },
 
   Mutation: {
 
-    async createPin(parent, args ) {
-      return await pinService.createPin(args);
+    async createPin(parent, args, context: IAuthorization ) {
+      return await pinService.createPin(args, context._id);
     },
 
     async updatePin(parent, args, context: IAuthorization) {
@@ -42,12 +47,20 @@ const pinResolver = {
 
   Pin: {
 
-    async creator(pin) {
+    async creator(pin: IPin) {
       if (!pin.creator) {
         return null;
       }
 
-      return await getServiceById(pin.creator, ServerEnum.USERS);
+      return await getServiceById(pin.creator, SERVICE_ENUM.USERS);
+    },
+
+    async board(pin: IPin) {
+      if (!pin.board) {
+        return null;
+      }
+
+      return await getServiceById(pin.board, SERVICE_ENUM.BOARDS);
     },
   },
 };

@@ -1,13 +1,20 @@
 import { Collection, ObjectID } from 'mongodb';
 
-import { createObjectID, findByElementKey, getServiceById } from '../common/helper.functions';
-import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, PERMISSION_DENIED, ServerEnum } from '../common/common.constants';
+import {
+  addCreator, createObjectID, findByElementKey, getServiceById,
+  removeCreator,
+} from '../common/helper.functions';
+import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, PERMISSION_DENIED, SERVICE_ENUM } from '../common/common.constants';
 import { DatabaseService } from '../common/database.service';
 import IPin from './pin.interface';
+import { USERS_ELEMENT } from '../user/user.contants';
 
+/**
+ * Service to control data of Pin type and Pin collection
+ */
 export default class PinService {
 
-  private collectionName = 'pins';
+  private collectionName =  SERVICE_ENUM.PINS;
   private database: Collection;
 
   constructor() {
@@ -38,9 +45,9 @@ export default class PinService {
     return result.toArray();
   }
 
-  async createPin(newPin: IPin) {
+  async createPin(newPin: IPin, creator: ObjectID) {
 
-    if (!await getServiceById(newPin.creator, ServerEnum.USERS)) {
+    if (!await getServiceById(creator, SERVICE_ENUM.USERS)) {
       throw new Error(DOES_NOT_EXIST('Creator '));
     }
 
@@ -48,14 +55,22 @@ export default class PinService {
       throw new Error(ALREADY_EXIST_ERROR('Name'));
     }
 
-    newPin.creator = createObjectID(newPin.creator);
-
-    if (!newPin.created_at) {
-      newPin.created_at = new Date();
+    if (!await getServiceById(newPin.board, SERVICE_ENUM.BOARDS)) {
+      throw new Error(DOES_NOT_EXIST('Board '));
     }
 
-    const inserted = await this.database.insertOne(newPin);
-    const [ resultingObject ] = inserted.ops;
+    const insertPin: IPin = {
+      ...newPin,
+      creator,
+      created_at: newPin.created_at || new Date(),
+      board: createObjectID(newPin.board),
+    };
+
+    const inserted = await this.database.insertOne(insertPin);
+
+    const [ resultingObject ]: IPin[] = inserted.ops;
+
+    await addCreator(resultingObject.creator, resultingObject._id, USERS_ELEMENT.PINS);
 
     return resultingObject;
   }
@@ -68,6 +83,10 @@ export default class PinService {
 
     if (!exist) {
       throw new Error(DOES_NOT_EXIST('Pin with sent id '));
+    }
+
+    if (!!sentPin.board) {
+      sentPin.board = createObjectID(sentPin.board);
     }
 
     delete sentPin._id;
@@ -89,7 +108,16 @@ export default class PinService {
       _id: createObjectID(_id),
     });
 
+    await removeCreator(creatorID, createObjectID(_id), USERS_ELEMENT.PINS);
+
     return result.value;
+  }
+
+  async getPinsFromBoard(boardID: string | ObjectID, creator: ObjectID) {
+
+    const result = await this.database.find({creator, board: createObjectID(boardID)});
+
+    return result.toArray();
   }
 
   async checkPinPermission(_id, creator) {
@@ -100,6 +128,7 @@ export default class PinService {
     if (!result.creator.equals(creator)) {
       throw new Error(PERMISSION_DENIED);
     }
+
     return {
       valid: true,
       creator,

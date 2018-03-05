@@ -1,5 +1,5 @@
 type Board {
-  id: ID!
+  _id: ID!
   name: String
   url: String
   description: String

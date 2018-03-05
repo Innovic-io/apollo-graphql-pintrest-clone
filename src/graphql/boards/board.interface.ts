@@ -7,7 +7,6 @@ export default interface IBoard {
   description: string;
   creator: ObjectID;
   created_at: Date;
-  numberOfPins: number;
   followers: ObjectID[];
   collaborators: ObjectID[];
   image: Blob;

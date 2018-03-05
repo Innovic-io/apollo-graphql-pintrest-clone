@@ -23,7 +23,9 @@ async function bootstrap() {
 
   const app = express();
 
-  app.use(bodyParser.json(), multer().any(), (req, res, next) => next());
+  app.use(bodyParser.json(),
+    multer().any(),
+    (req, res, next) => next());
 
   await startMonitor(app);
 
@@ -36,8 +38,6 @@ async function bootstrap() {
     })),
 
   );
-
-  app.get(`${API_ENDPOINT}/graphiql`, graphiqlExpress({ endpointURL: API_ENDPOINT }));
 
   await app.listen(+PORT || 3000);
 }

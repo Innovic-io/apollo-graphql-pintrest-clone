@@ -1,11 +1,24 @@
 import { ObjectID, Collection } from 'mongodb';
 
-import { WRONG_ID_FORMAT_ERROR } from './common.constants';
+import { SERVICE_ENUM, WRONG_ID_FORMAT_ERROR } from './common.constants';
 import UserService from '../user/user.service';
-import PinService from '../pins/pin.service';
-import BoardService from '../boards/board.service';
+import { USERS_ELEMENT } from '../user/user.contants';
+import IUser from '../user/user.interface';
+import { DatabaseService } from './database.service';
 
-export const createObjectID = (id?) => {
+let database;
+
+DatabaseService
+  .getDB()
+  .then((value) => database = value);
+
+/**
+ * Make Object ID from id provided
+ *
+ * @param {string | ObjectID} id
+ * @returns {ObjectID}
+ */
+export const createObjectID = (id?: string | ObjectID) => {
 
   if (!!id && !ObjectID.isValid(id)) {
     throw new Error(WRONG_ID_FORMAT_ERROR);
@@ -14,30 +27,59 @@ export const createObjectID = (id?) => {
   return new ObjectID(id);
 };
 
-export const findByElementKey = async <T> (database: Collection, elementKey: string, searchValue: any) => {
+/**
+ * Get one result from collection by elementKey
+ *
+ * @param {Collection} sentDatabase
+ * @param {string} elementKey
+ * @param searchValue
+ * @returns {Promise<Service>}
+ */
+export const findByElementKey = async <Service> (sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
 
-  return await database.findOne<T>({[elementKey]: searchValue});
+  return await sentDatabase.findOne<Service>({[elementKey]: searchValue});
 };
 
-export const getServiceById = async (_id, serviceName: string) => {
+/**
+ * Call function for getting by ID from Service provided
+ *
+ * @param {ObjectID} _id
+ * @param {SERVICE_ENUM} serviceName
+ * @returns {Promise<any>}
+ */
+export const getServiceById = async (_id: ObjectID, serviceName: SERVICE_ENUM) => {
 
-  let service;
-  switch (serviceName.toLocaleLowerCase()) {
-    case 'users':
-      service = await new UserService();
-      break;
+  const db = await DatabaseService.getDB();
+  return await db.collection(serviceName)
+    .findOne({_id});
+};
 
-    case 'pins':
-      service = await new PinService();
-      break;
+/**
+ * Add value to user collection Array
+ *
+ * @param {ObjectID} creatorID
+ * @param {ObjectID} value
+ * @param {USERS_ELEMENT} type
+ * @returns {Promise<IUser>}
+ */
+export const addCreator = async (creatorID: ObjectID, value: ObjectID, type: USERS_ELEMENT): Promise<IUser> => {
 
-    case 'boards':
-      service = await new BoardService();
-      break;
+  const userService = await new UserService();
 
-    default:
-      throw new Error('Not supported');
-  }
+  return await userService.addToSet(creatorID, value, type);
+};
 
-  return await service.getByID(_id);
+/**
+ * remove element from Array in user collection
+ *
+ * @param {ObjectID} userID
+ * @param {ObjectID} valueToRemove
+ * @param {USERS_ELEMENT} arrayName
+ * @returns {Promise<T>}
+ */
+export const removeCreator = async <T> (userID: ObjectID, valueToRemove: ObjectID, arrayName: USERS_ELEMENT): Promise<T> => {
+
+  const userService = await new UserService();
+
+  return await userService.removeFromSet(userID, valueToRemove, arrayName);
 };
