@@ -1,6 +1,6 @@
 import * as multer from 'multer';
 import * as express from 'express';
-import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
+import { graphqlExpress } from 'apollo-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as bodyParser from 'body-parser';
 import * as requestPromise from 'request-promise';
@@ -42,7 +42,7 @@ async function bootstrap() {
   await app.listen(+PORT || 3000);
 }
 
-function startMonitor(app) {
+async function startMonitor(app) {
   app.get(`${API_ENDPOINT}/${MONITOR_NAME}`, async (req, res) => {
     const [ host ] = req.headers.host.split(':');
 

@@ -2,7 +2,7 @@ import { ObjectID, Collection } from 'mongodb';
 
 import { SERVICE_ENUM, WRONG_ID_FORMAT_ERROR } from './common.constants';
 import UserService from '../user/user.service';
-import { USERS_ELEMENT } from '../user/user.contants';
+import { USERS_ELEMENT } from './common.constants';
 import IUser from '../user/user.interface';
 import { DatabaseService } from './database.service';
 
@@ -47,11 +47,11 @@ export const findByElementKey = async <Service> (sentDatabase: Collection, eleme
  * @param {SERVICE_ENUM} serviceName
  * @returns {Promise<any>}
  */
-export const getServiceById = async (_id: ObjectID, serviceName: SERVICE_ENUM) => {
+export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
 
   const db = await DatabaseService.getDB();
   return await db.collection(serviceName)
-    .findOne({_id});
+    .findOne<T>({_id});
 };
 
 /**
@@ -75,11 +75,18 @@ export const addCreator = async (creatorID: ObjectID, value: ObjectID, type: USE
  * @param {ObjectID} userID
  * @param {ObjectID} valueToRemove
  * @param {USERS_ELEMENT} arrayName
- * @returns {Promise<T>}
+ * @returns {Promise<IUser>}
  */
-export const removeCreator = async <T> (userID: ObjectID, valueToRemove: ObjectID, arrayName: USERS_ELEMENT): Promise<T> => {
+export const removeCreator = async (userID: ObjectID, valueToRemove: ObjectID, arrayName: USERS_ELEMENT): Promise<IUser> => {
 
   const userService = await new UserService();
 
   return await userService.removeFromSet(userID, valueToRemove, arrayName);
+};
+
+export const makeString = (receivedObject) => {
+  return Object
+    .keys(receivedObject)
+    .map((objectKey) => `${objectKey}:"${receivedObject[objectKey]}"`)
+    .join(',');
 };

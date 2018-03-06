@@ -2,7 +2,7 @@ type Query {
   getAllPins: [Pin]
   # DONE
 
-  getPin(pin: ID!): Pin
+  getPin(_id: ID!): Pin
   # DONE
 
   getUserPins(cursor: String): [Pin]
@@ -10,7 +10,7 @@ type Query {
 
   searchPins(query: String): Pin
 
-  getPinsFromBoard(board: ID!,
+  getPinsFromBoard(boardID: ID!,
     cursor: String): [Pin]
   # DONE
 
@@ -32,13 +32,13 @@ type Query {
   # query - if we want to search for specific pin
   # example /search/pins/?q=places%20to%20see%20before%20you%20die
 
-  getBoard(board: ID!): Board #  board - The board you want to fetch in the format <username>/<board_name>
+  getBoard(_id: ID!): Board #  board - The board you want to fetch in the format <username>/<board_name>
   #DONE
 
   searchBoard(boardName: String): Board
   # example /search/boards/?q=places%20to%20see%20before%20you%20die&rs=filter
 
-  getBoardSuggestion(pin: ID!): [Board] # The pin_id that you want to return board suggestions for.
+  getBoardSuggestion(_id: ID!): [Board] # The pin_id that you want to return board suggestions for.
   # Boards that Pinterest would suggest to the authenticated user if they were to save the specified Pin.
   # The default response: ID, URL and name of the boards.
 

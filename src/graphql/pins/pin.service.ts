@@ -7,7 +7,7 @@ import {
 import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, PERMISSION_DENIED, SERVICE_ENUM } from '../common/common.constants';
 import { DatabaseService } from '../common/database.service';
 import IPin from './pin.interface';
-import { USERS_ELEMENT } from '../user/user.contants';
+import { USERS_ELEMENT } from '../common/common.constants';
 
 /**
  * Service to control data of Pin type and Pin collection
@@ -20,9 +20,7 @@ export default class PinService {
   constructor() {
 
     DatabaseService.getDB()
-      .then((value) => {
-        this.database = value.collection(this.collectionName);
-      });
+      .then((value) => this.database = value.collection(this.collectionName) );
   }
 
   async getByID(pinID: ObjectID | string): Promise<IPin> {
@@ -31,9 +29,15 @@ export default class PinService {
 
   }
 
-  async getUserPins(_id: string | ObjectID) {
+  /**
+   * Get all Pins Authorized user created
+   *
+   * @param {string | ObjectID} _id
+   * @returns {Promise<IPin[]>}
+   */
+  async getUserPins(_id: string | ObjectID): Promise<IPin[]> {
 
-    const result = await this.database.find({creator: createObjectID(_id)});
+    const result = await this.database.find<IPin>({creator: createObjectID(_id)});
 
     return result.toArray();
   }
@@ -45,7 +49,14 @@ export default class PinService {
     return result.toArray();
   }
 
-  async createPin(newPin: IPin, creator: ObjectID) {
+  /**
+   * Create new Pin as authorized User
+   *
+   * @param {IPin} newPin
+   * @param {ObjectID} creator
+   * @returns {Promise<IPin>}
+   */
+  async createPin(newPin: IPin, creator: ObjectID): Promise<IPin> {
 
     if (!await getServiceById(creator, SERVICE_ENUM.USERS)) {
       throw new Error(DOES_NOT_EXIST('Creator '));
@@ -55,7 +66,7 @@ export default class PinService {
       throw new Error(ALREADY_EXIST_ERROR('Name'));
     }
 
-    if (!await getServiceById(newPin.board, SERVICE_ENUM.BOARDS)) {
+    if (!await getServiceById(createObjectID(newPin.board), SERVICE_ENUM.BOARDS)) {
       throw new Error(DOES_NOT_EXIST('Board '));
     }
 
@@ -75,14 +86,21 @@ export default class PinService {
     return resultingObject;
   }
 
-  async updatePin(sentPin: IPin, creatorID: ObjectID) {
+  /**
+   * Update pin if User have permission and Pin exist
+   *
+   * @param {IPin} sentPin
+   * @param {ObjectID} creatorID
+   * @returns {Promise<IPin>}
+   */
+  async updatePin(sentPin: IPin, creatorID: ObjectID): Promise<IPin> {
 
     await this.checkPinPermission(sentPin._id, creatorID);
 
     const exist = await findByElementKey<IPin>(this.database, '_id', createObjectID(sentPin._id));
 
     if (!exist) {
-      throw new Error(DOES_NOT_EXIST('Pin with sent id '));
+      throw new Error(DOES_NOT_EXIST('Pin with sent ID '));
     }
 
     if (!!sentPin.board) {
@@ -113,14 +131,29 @@ export default class PinService {
     return result.value;
   }
 
-  async getPinsFromBoard(boardID: string | ObjectID, creator: ObjectID) {
+  /**
+   * Get authorized users pins from given board
+   *
+   * @param {string | ObjectID} boardID
+   * @param {ObjectID} creator
+   * @returns {Promise<IPin>}
+   */
+  async getPinsFromBoard(boardID: string | ObjectID, creator: ObjectID): Promise<IPin[]> {
 
-    const result = await this.database.find({creator, board: createObjectID(boardID)});
+    const result = await this.database
+      .find<IPin>({creator, board: createObjectID(boardID)});
 
     return result.toArray();
   }
 
-  async checkPinPermission(_id, creator) {
+  /**
+   * Check if Authorized user have right to perform action
+   *
+   * @param {ObjectID} _id
+   * @param {ObjectID} creator
+   * @returns {Promise<{valid: boolean; creator: ObjectID}>}
+   */
+  async checkPinPermission(_id: ObjectID | string, creator: ObjectID) {
 
     const result = await findByElementKey<IPin>(this.database,
       '_id', createObjectID(_id));

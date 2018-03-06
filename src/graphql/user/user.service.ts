@@ -4,10 +4,13 @@ import 'rxjs/add/observable/forkJoin';
 
 import IUser from './user.interface';
 import { createObjectID, findByElementKey, getServiceById } from '../common/helper.functions';
-import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, SERVICE_ENUM } from '../common/common.constants';
+import {
+  DOES_NOT_EXIST, ALREADY_EXIST_ERROR, SERVICE_ENUM,
+  WRONG_USERNAME_AND_PASSWORD,
+} from '../common/common.constants';
 import { DatabaseService } from '../common/database.service';
 import { hashPassword, generateToken, comparePasswords, IHashedPassword } from '../common/cryptography';
-import { USERS_ELEMENT } from './user.contants';
+import { USERS_ELEMENT } from '../common/common.constants';
 
 /**
  * Service to control data of Board type
@@ -15,7 +18,7 @@ import { USERS_ELEMENT } from './user.contants';
 export default class UserService {
 
   private collectionName =  SERVICE_ENUM.USERS;
-  private database: Collection;
+  database: Collection;
 
   constructor() {
     DatabaseService.getDB().then((value) => this.database = value.collection(this.collectionName));
@@ -52,7 +55,14 @@ export default class UserService {
     return this.makeToken(resultingObject, newUser.password);
   }
 
-  async createdBoard(boardID: ObjectID, followerID: ObjectID) {
+  /**
+   * Add Board to User
+   *
+   * @param {ObjectID} boardID
+   * @param {ObjectID} followerID
+   * @returns {Promise<IUser>}
+   */
+  async createdBoard(boardID: ObjectID, followerID: ObjectID): Promise<IUser> {
 
     const result = await this.database
       .findOneAndUpdate(
@@ -64,6 +74,14 @@ export default class UserService {
     return result.value;
   }
 
+  /**
+   * Add elementToAdd in elementColumn Array of User
+   *
+   * @param {ObjectID} _id
+   * @param elementToAdd
+   * @param {USERS_ELEMENT} elementColumn
+   * @returns {Promise<IUser>}
+   */
   async addToSet(_id: ObjectID, elementToAdd: any, elementColumn: USERS_ELEMENT): Promise<IUser> {
 
     const result = await this.database
@@ -88,7 +106,14 @@ export default class UserService {
     return await this.addToSet(createObjectID(followerID), followee._id, USERS_ELEMENT.FOLLOWING);
   }
 
-  async getFollowing(_id: string | ObjectID, type: USERS_ELEMENT) {
+  /**
+   * Get all Users which authorized User follow
+   *
+   * @param {string | ObjectID} _id
+   * @param {USERS_ELEMENT} type
+   * @returns {Promise<IUser[]>}
+   */
+  async getFollowing(_id: string | ObjectID, type: USERS_ELEMENT): Promise<IUser[]> {
 
     const arrElem: SERVICE_ENUM = (type === USERS_ELEMENT.FOLLOWING) ? (SERVICE_ENUM.USERS) : SERVICE_ENUM[type.toUpperCase()];
 
@@ -101,13 +126,19 @@ export default class UserService {
     const result = user[type]
       .map(async (oneID) => await getServiceById(oneID, arrElem));
 
-    return await Observable.forkJoin(result).toPromise();
+    return await Observable.forkJoin<IUser>(result).toPromise();
   }
 
-  async getFollowers(_id: string | ObjectID) {
+  /**
+   * Get all Users which follow authorized User
+   *
+   * @param {string | ObjectID} _id
+   * @returns {Promise<any>}
+   */
+  async getFollowers(_id: string | ObjectID): Promise<IUser[]> {
 
     const result = await this.database
-      .find(
+      .find<IUser>(
         {
           following: { $in: [ createObjectID(_id) ]},
         });
@@ -115,12 +146,20 @@ export default class UserService {
     return result.toArray();
   }
 
-  async removeFromSet(_id: string | ObjectID, followerID: ObjectID, type: USERS_ELEMENT) {
+  /**
+   * In Authorized user columnName Remove elementToRemove
+   *
+   * @param {string | ObjectID} elementToRemove
+   * @param {ObjectID} _id
+   * @param {USERS_ELEMENT} columnName
+   * @returns {Promise<IUser>}
+   */
+  async removeFromSet(_id: ObjectID, elementToRemove: string | ObjectID, columnName: USERS_ELEMENT): Promise<IUser> {
 
     const result = await this.database
-      .findOneAndUpdate({_id: followerID},
+      .findOneAndUpdate({_id},
         {
-        $pull: { [type]: {$in: [ createObjectID(_id) ]} },
+        $pull: { [columnName]: {$in: [ createObjectID(elementToRemove) ]} },
       });
 
     return result.value;
@@ -139,10 +178,10 @@ export default class UserService {
     return await this.makeToken(user, password);
   }
 
-  private async makeToken(user: IUser, password: string) {
+  private async makeToken(user: IUser, password: string): Promise<string> {
 
     if (!user || !await comparePasswords(password, user.salt, user.password)) {
-      throw new Error('Wrong username or password');
+      throw new Error(WRONG_USERNAME_AND_PASSWORD);
     }
 
     return await generateToken({ _id: user._id });

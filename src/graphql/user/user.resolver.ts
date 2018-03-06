@@ -1,7 +1,7 @@
 import UserService from './user.service';
 import IUser from './user.interface';
 import { IAuthorization } from '../../authorization/authorization.interface';
-import { USERS_ELEMENT } from './user.contants';
+import { USERS_ELEMENT } from '../common/common.constants';
 
 const userService = new UserService();
 

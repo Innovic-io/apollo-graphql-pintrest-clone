@@ -8,8 +8,8 @@ const boardService = new BoardService();
 
 const boardResolver = {
   Query: {
-    async getBoard(parent, { board }) {
-      return await boardService.getByID(board);
+    async getBoard(parent, { _id }) {
+      return await boardService.getByID(_id);
     },
 
     async getBoardFollowing(parent, args, context: IAuthorization) {

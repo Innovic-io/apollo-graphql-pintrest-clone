@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  api:
+    env_file: ../.env
+    build:
+      context: ""
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: test
+        PORT: ${PORT}
+    restart: 'no'
+    command: npm run e2e

@@ -4,12 +4,11 @@ import { Observable } from 'rxjs/Observable';
 import { DatabaseService } from '../common/database.service';
 import IBoard from './board.interface';
 import {
-  addCreator, createObjectID, findByElementKey, getServiceById,
-  removeCreator,
+  addCreator, createObjectID, findByElementKey, getServiceById, removeCreator,
 } from '../common/helper.functions';
 import { ALREADY_EXIST_ERROR, DOES_NOT_EXIST, PERMISSION_DENIED, SERVICE_ENUM } from '../common/common.constants';
-import UserService from '../user/user.service';
-import { USERS_ELEMENT } from '../user/user.contants';
+import { USERS_ELEMENT } from '../common/common.constants';
+import IUser from '../user/user.interface';
 
 /**
  * Service to control data of Board type and Board collection
@@ -32,16 +31,29 @@ export default class BoardService {
     return await findByElementKey<IBoard>(this.database, '_id', createObjectID(boardID));
   }
 
-  async startFollowingBoard(_id: string | ObjectID, creatorID: ObjectID) {
+  /**
+   * Add User with followerID to array 'followers'
+   *
+   * @param {string | ObjectID} _id
+   * @param {ObjectID} followerID
+   * @returns {Promise<IBoard>}
+   */
+  async startFollowingBoard(_id: string | ObjectID, followerID: ObjectID): Promise<IBoard> {
 
     const result = await this.database.findOneAndUpdate({_id: createObjectID(_id)},
-      { $addToSet: { followers: creatorID } },
+      { $addToSet: { followers: followerID } },
       { returnOriginal: false });
 
     return result.value;
   }
 
-  async getBoardFollowing(_id: ObjectID) {
+  /**
+   * Get all boards which user with _id follows
+   *
+   * @param {ObjectID} _id
+   * @returns {Promise<IBoard[]>}
+   */
+  async getBoardFollowing(_id: ObjectID): Promise<IBoard[]> {
 
     const result = await this.database.find({followers: { $in: [_id] }});
 
@@ -113,7 +125,7 @@ export default class BoardService {
     const result = await this.database
       .findOneAndDelete({_id: createObjectID(_id)});
 
-    await removeCreator(createObjectID(_id), creatorID, USERS_ELEMENT.BOARDS);
+    await removeCreator(creatorID, createObjectID(_id), USERS_ELEMENT.BOARDS);
 
     return result.value;
   }
@@ -140,19 +152,32 @@ export default class BoardService {
     };
   }
 
-  async getUsers(_id: ObjectID, users: ObjectID[]) {
+  /**
+   * get All users info by ID
+   *
+   * @param {ObjectID} _id
+   * @param {ObjectID[]} users
+   * @returns {Promise<IUser[]>}
+   */
+  async getUsers(_id: ObjectID, users: ObjectID[]): Promise<IUser[]> {
 
     if (!users) {
       return null;
     }
 
     const result = users
-      .map( async (userIndex) => await getServiceById(userIndex, SERVICE_ENUM.USERS));
+      .map( async (userIndex) => await getServiceById<IUser>(userIndex, SERVICE_ENUM.USERS));
 
     return await Observable.forkJoin(result).toPromise();
   }
 
-  async getCreators(_id: ObjectID) {
+  /**
+   * Get all boards which User with _id created.
+   *
+   * @param {ObjectID} _id
+   * @returns {Promise<IBoard[]>}
+   */
+  async getCreators(_id: ObjectID): Promise<IBoard[]> {
     const result = await this.database.find({creator: _id});
 
     return result.toArray();

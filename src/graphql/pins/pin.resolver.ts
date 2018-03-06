@@ -6,26 +6,26 @@ import IPin from './pin.interface';
 
 const pinService = new PinService();
 
-// if something need to be verified, in context field is
-// results of authorization.middleware
+// if something need to be verified, Authorization is stored in context
 
 const pinResolver = {
   Query: {
 
-    async getPin(parent, { pin }) {
-      return await pinService.getByID(pin);
+    async getPin(parent, { _id }) {
+      return await pinService.getByID(_id);
     },
 
     async getAllPins() {
       return await pinService.getAllPins();
     },
 
+    // get pins from authorized user
     async getUserPins(parent, {}, context: IAuthorization) {
       return await pinService.getUserPins(context._id);
     },
 
-    async getPinsFromBoard(parent, {board}, context: IAuthorization) {
-      return await pinService.getPinsFromBoard(board, context._id);
+    async getPinsFromBoard(parent, {boardID}, context: IAuthorization) {
+      return await pinService.getPinsFromBoard(boardID, context._id);
     },
   },
 
