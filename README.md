@@ -1,6 +1,6 @@
 ## Pintrest API clone on Apollo GraphQL with MongoDB
 
-<img src="https://blog.savoirfairelinux.com/fr-ca/wp-content/uploads/2017/10/VQLBJ0TR_200x200.png" height="200" /><img height="200" src="https://seeklogo.com/images/A/apollo-logo-DC7DD3C444-seeklogo.com.png" /><img height="200" src="https://seeklogo.com/images/T/typescript-logo-B29A3F462D-seeklogo.com.png" />
+<img height="100" src="https://seeklogo.com/images/T/typescript-logo-B29A3F462D-seeklogo.com.png" /><img src="https://blog.savoirfairelinux.com/fr-ca/wp-content/uploads/2017/10/VQLBJ0TR_200x200.png" height="100" /><img height="100" src="https://seeklogo.com/images/A/apollo-logo-DC7DD3C444-seeklogo.com.png" />
 
 *Built with:*
 
