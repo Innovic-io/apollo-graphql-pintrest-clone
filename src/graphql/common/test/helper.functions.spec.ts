@@ -15,7 +15,7 @@ describe('Helper function', () => {
   });
 
   it('should make proper string', () => {
-    const object = {name: 'Unique Name',description: 'Board description'};
+    const object = {name: 'Unique Name', description: 'Board description'};
     expect(makeString(object)).toBe(`name:"Unique Name",description:"Board description"`);
   });
 });

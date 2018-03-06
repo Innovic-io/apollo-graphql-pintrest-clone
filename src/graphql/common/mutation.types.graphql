@@ -40,15 +40,15 @@ type Mutation {
   # Return token for user
   # DONE
 
-  createFollowingUser(_id: ID!): User # user = The username of the user that you want to follow.
+  followUser(_id: ID!): User # user = The username of the user that you want to follow.
   # Makes the authenticated user follow the specified user.
   # DONE
 
-  deleteFollowingUser(_id: ID!): User # userID = username OR user ID
+  stopFollowingUser(_id: ID!): User # userID = username OR user ID
   # Makes the authenticated user unfollow the specified user.
   # DONE
 
-  startFollowingBoard(_id: ID!): Board # board format = <username>/<board_name>.
+  followBoard(_id: ID!): Board # board format = <username>/<board_name>.
   # Makes the authenticated user follow the specified board.
   # DONE
 

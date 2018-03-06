@@ -44,12 +44,12 @@ const userResolver = {
       return await userService.createUser(args);
     },
 
-    async createFollowingUser(parent, { _id }, context: IAuthorization) {
+    async followUser(parent, { _id }, context: IAuthorization) {
 
       return await userService.startFollowingUser(_id, context._id);
     },
 
-    async deleteFollowingUser(parent, {_id }, context: IAuthorization) {
+    async stopFollowingUser(parent, {_id }, context: IAuthorization) {
 
       return await userService.removeFromSet(_id, context._id, USERS_ELEMENT.FOLLOWING);
     },

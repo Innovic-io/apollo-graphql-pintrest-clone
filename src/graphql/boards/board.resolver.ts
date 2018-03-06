@@ -34,7 +34,7 @@ const boardResolver = {
       return await boardService.deleteBoard(_id, context._id);
     },
 
-    async startFollowingBoard(parent, {_id}, context: IAuthorization) {
+    async followBoard(parent, {_id}, context: IAuthorization) {
       return await boardService.startFollowingBoard(_id, context._id);
     },
 
