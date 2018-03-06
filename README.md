@@ -1,6 +1,6 @@
 ## Pintrest API clone on Apollo GraphQL with MongoDB
 
-<img src="https://caveofcode.com/wp-content/uploads/2016/10/apollostack-300x300.png" />
+<img src="https://blog.savoirfairelinux.com/fr-ca/wp-content/uploads/2017/10/VQLBJ0TR_200x200.png" height="200" /><img height="200" src="https://seeklogo.com/images/A/apollo-logo-DC7DD3C444-seeklogo.com.png" /><img height="200" src="https://seeklogo.com/images/T/typescript-logo-B29A3F462D-seeklogo.com.png" />
 
 *Built with:*
 
@@ -27,11 +27,23 @@
 We used Insomnia tool for testing GraphQL API responses: https://insomnia.rest/
 
 ```bash
+# install local dependencies
 npm install
 
 
 # create docker containers for development
 docker-compose -f docker-compose.yml -f docker-compose.local.yml up -d
+```
+
+### Run e2e tests and unit tests
+
+```bash
+# end to end tests
+npm run e2e
+
+# unit tests
+npm run test
+
 ```
 
 ### GraphQL example calls
