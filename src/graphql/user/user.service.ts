@@ -3,14 +3,10 @@ import { Collection, ObjectID } from 'mongodb';
 import 'rxjs/add/observable/forkJoin';
 
 import IUser from './user.interface';
-import { createObjectID, findByElementKey, getServiceById } from '../common/helper.functions';
-import {
-  DOES_NOT_EXIST, ALREADY_EXIST_ERROR, SERVICE_ENUM,
-  WRONG_USERNAME_AND_PASSWORD,
-} from '../common/common.constants';
+import { createObjectID, findByElementKey, getServiceById, makeToken } from '../common/helper.functions';
+import { ALREADY_EXIST_ERROR, DOES_NOT_EXIST, SERVICE_ENUM, USERS_ELEMENT, } from '../common/common.constants';
 import { DatabaseService } from '../common/database.service';
-import { hashPassword, generateToken, comparePasswords, IHashedPassword } from '../common/cryptography';
-import { USERS_ELEMENT } from '../common/common.constants';
+import { hashPassword, IHashedPassword } from '../common/cryptography';
 
 /**
  * Service to control data of Board type
@@ -42,7 +38,8 @@ export default class UserService {
 
     const hashedPassword: IHashedPassword = await hashPassword(newUser.password);
 
-    const inputUser = {...newUser,
+    const inputUser = {
+      ...newUser,
       password: hashedPassword.hash,
       salt: hashedPassword.salt,
       created_at: newUser.created_at || new Date(),
@@ -52,7 +49,7 @@ export default class UserService {
 
     const [ resultingObject ] = inserted.ops as IUser[];
 
-    return this.makeToken(resultingObject, newUser.password);
+    return await makeToken(resultingObject, newUser.password);
   }
 
   /**
@@ -175,15 +172,7 @@ export default class UserService {
 
     const user = await this.database.findOne<IUser>({ username });
 
-    return await this.makeToken(user, password);
+    return await makeToken(user, password);
   }
 
-  private async makeToken(user: IUser, password: string): Promise<string> {
-
-    if (!user || !await comparePasswords(password, user.salt, user.password)) {
-      throw new Error(WRONG_USERNAME_AND_PASSWORD);
-    }
-
-    return await generateToken({ _id: user._id });
-  }
 }

@@ -54,63 +54,85 @@ Mutations:
 # Create user in DB
 
 mutation {
-    createUser(username: "unique",
-    password: "pass123", 
-    first_name: "Marc", 
-    last_name: "Marcovski")
-}
-
-# Authentication
-
-mutation {
+    createUser(username: "unique", password: "pass123", 
+        first_name: "Marc", last_name: "Marcovski")
+    
+  # Authentication
     loginUser(username: "unique",
-    password: "pass123")
-}
+      password: "pass123")
+} # copy token which you get in Bearer authorization
 
+# create user for later follow 
+mutation {
+    createUser(username: "unique 1", password: "pass123", 
+               first_name: "Boris", last_name: "Yurinov")
+}
 # Create Board
 
 mutation { 
     createBoard(
     name: "Unique Name", 
     description: "Board description") {
-        _id name created_at
-        creator { username first_name }
+        _id name created_at creator { username first_name }
     }
-}
+} # copy _id which you get
 
 # Create Pin
 
 mutation {
-    createPin(board: "{boardID}",
+    createPin(board: "boardID",
     name: "Unique name",
     note: "Note for this pin") {
-        name created_at 
-        board {  created_at description name}
+        name created_at  board {  created_at description name}
         creator { username first_name }
     }
 }
 
-# Follow user
+# get all users 
+{
+	getAllUsers { _id first_name last_name }
+} # copy some _id
+
+# Follow user and Board
 
 mutation {
-    followUser(_id: "{{userID}}") {
-        username
-        first_name
-    }
-}
+	followBoard(_id: "boardID") {
+		_id name followers { first_name last_name }
+	}
+
+	followUser(_id: "userID") {
+		first_name last_name following { first_name last_name }
+	}
+} 
 ```
 
 Queries:
 
 ```graphql
 
-# Get all Pins associated with a specific Board
+# Get 
+
+fragment userResult on User { username first_name last_name }
+
+fragment boardResult on Board { 
+  name 
+  creator { ...userResult } 
+  followers {...userResult} }
+
+fragment pinResult on Pin {
+	name created_at note
+	board { ...boardResult }
+	creator { ...userResult }
+}
 
 {
-    getPinsFromBoard(board: "{{boardID}}") {
-        name
-        note
-    }
+	getPin(_id: "pinID") { ...pinResult }
+	getBoard(_id: "boardID") { ...boardResult }
+	getUser { ...userResult }
+	getUserBoards { ...boardResult }
+	getUserPins { ...pinResult }
+	getPinsFromBoard(boardID: "boardID" ) { ...pinResult }
+	getUserFollowings { ...userResult	}
 }
 
 ```

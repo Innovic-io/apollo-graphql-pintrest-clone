@@ -8,11 +8,7 @@ export const DB_NAME = process.env.DB_NAME;
 export const DB_TESTING = 'testing';
 export const DB_PORT = process.env.MONGO_PORT;
 export const DB_VOLUME_LOCATION = process.env.DB_VOLUME_LOCATION;
-export const DATABASE_TOKEN = 'DbMongoToken';
 export const DATABASE_URI = `mongodb://mongo:${DB_PORT}/${DB_NAME}`;
 export const TEST_DATABASE_URI = `mongodb://localhost:${DB_PORT}/${DB_TESTING}`;
-
-export const MONITOR_NAME = 'Monitor';
-export const PM2_PORT = 4545;
 
 export const privateKey = '?TM!A%ibGacO4->l:Q`YIXh/N!c,45Kh>V1#eg6fbJWAg~sg3Mo):}Gx$uW_|TO';

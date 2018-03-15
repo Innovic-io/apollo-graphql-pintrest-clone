@@ -1,10 +1,10 @@
-import { ObjectID, Collection } from 'mongodb';
+import { Collection, ObjectID } from 'mongodb';
 
-import { SERVICE_ENUM, WRONG_ID_FORMAT_ERROR } from './common.constants';
+import { SERVICE_ENUM, USERS_ELEMENT, WRONG_ID_FORMAT_ERROR, WRONG_USERNAME_AND_PASSWORD } from './common.constants';
 import UserService from '../user/user.service';
-import { USERS_ELEMENT } from './common.constants';
 import IUser from '../user/user.interface';
 import { DatabaseService } from './database.service';
+import { comparePasswords, generateToken } from './cryptography';
 
 let database;
 
@@ -35,9 +35,9 @@ export const createObjectID = (id?: string | ObjectID) => {
  * @param searchValue
  * @returns {Promise<Service>}
  */
-export const findByElementKey = async <Service> (sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
+export const findByElementKey = async <Service>(sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
 
-  return await sentDatabase.findOne<Service>({[elementKey]: searchValue});
+  return await sentDatabase.findOne<Service>({ [ elementKey ]: searchValue });
 };
 
 /**
@@ -47,11 +47,11 @@ export const findByElementKey = async <Service> (sentDatabase: Collection, eleme
  * @param {SERVICE_ENUM} serviceName
  * @returns {Promise<any>}
  */
-export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
+export const getServiceById = async <T>(_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
 
   const db = await DatabaseService.getDB();
   return await db.collection(serviceName)
-    .findOne<T>({_id});
+    .findOne<T>({ _id });
 };
 
 /**
@@ -87,6 +87,15 @@ export const removeCreator = async (userID: ObjectID, valueToRemove: ObjectID, a
 export const makeString = (receivedObject) => {
   return Object
     .keys(receivedObject)
-    .map((objectKey) => `${objectKey}:"${receivedObject[objectKey]}"`)
+    .map((objectKey) => `${objectKey}:"${receivedObject[ objectKey ]}"`)
     .join(',');
+};
+
+export const makeToken = async (user: IUser, password: string): Promise<string> => {
+
+  if (!user || !await comparePasswords(password, user.salt, user.password)) {
+    throw new Error(WRONG_USERNAME_AND_PASSWORD);
+  }
+
+  return await generateToken({ _id: user._id });
 };

@@ -1,5 +1,6 @@
+import { ObjectID } from 'mongodb';
+
 import { createObjectID, makeString } from '../helper.functions';
-import { ObjectID } from 'bson';
 
 describe('Helper function', () => {
 

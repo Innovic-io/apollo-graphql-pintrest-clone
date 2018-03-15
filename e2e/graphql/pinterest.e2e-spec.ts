@@ -8,6 +8,7 @@ import { IAuthorization } from '../../src/authorization/authorization.interface'
 import AuthorizationMiddleware from '../../src/authorization/authorization.middleware';
 import { makeExecutableSchema } from 'graphql-tools';
 import pinResolver from '../../src/graphql/pins/pin.resolver';
+import { decodeToken } from '../../src/graphql/common/cryptography';
 import boardResolver from '../../src/graphql/boards/board.resolver';
 import typeDefs from '../../src/typeDefs';
 import scalarResolverFunctions from '../../src/graphql/scalars/scalars.resolver';
@@ -27,34 +28,31 @@ describe('Pinterest ', () => {
     typeDefs,
   });
 
-  let server;
+  const server = express()
+    .post(
+      API_ENDPOINT,
+      bodyParser.json(),
+      AuthorizationMiddleware,
+      graphqlExpress((req) => Object.assign(
+        {
+          schema,
+          context: req[ 'user' ] as IAuthorization
+        }))
+    );
+
   let token;
   let boardID;
   let pinID;
 
   const loginUserObject = { username: 'Username', password: 'password' };
-  const userObject = {...loginUserObject, first_name: 'Mirko', last_name: 'Markovic' };
+  const userObject = { ...loginUserObject, first_name: 'Mirko', last_name: 'Markovic' };
 
-  const loginString = makeString(loginUserObject);
-
-  const allUser =  makeString(userObject);
-
-  const boardObject = {name: 'Unique Name',description: 'Board description'};
-  const boardString = makeString(boardObject);
-
+  const boardObject = { name: 'Unique Name', description: 'Board description' };
   const pinObject = { name: 'Unique name', note: 'Note for this pin' };
-  const pinString = makeString(pinObject);
 
-  let header = {authorization: ''};
+  let header = { authorization: '' };
   // @ts-ignore
-  beforeAll( async () => {
-    server = express()
-        .post(
-          API_ENDPOINT,
-          bodyParser.json(),
-          AuthorizationMiddleware,
-          graphqlExpress((req) => Object.assign({ schema, context: req['user'] as IAuthorization }))
-        );
+  beforeAll(async () => {
       const db = await DatabaseService.getDB();
       db.dropDatabase();
     }
@@ -63,22 +61,22 @@ describe('Pinterest ', () => {
   it('should create User', async () => {
     const command = 'createUser';
     const body = {
-      query :`mutation {${command}(${allUser})}`
+      query: `mutation {${command}(${makeString(userObject)})}`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
       .expect(200);
-    token = resource.body.data[command];
+    token = resource.body.data[ command ];
 
-    expect(typeof resource.body.data[command]).toBe('string');
+    expect(typeof resource.body.data[ command ]).toBe('string');
   });
 
   it('login user', async (done) => {
     const command = 'loginUser';
     const body = {
-      query :`mutation {${command}(${loginString})}`
+      query: `mutation {${command}(${makeString(loginUserObject)})}`
     };
 
     const resource = await request(server)
@@ -86,7 +84,13 @@ describe('Pinterest ', () => {
       .send(body)
       .expect(200);
 
-    expect(typeof resource.body.data[command]).toBe('string');
+    const decodedLogin = decodeToken(resource.body.data[ command ]) as IAuthorization;
+    const decodedSignup = decodeToken(token)as IAuthorization;
+
+    expect(typeof resource.body.data[ command ]).toBe('string');
+    expect(decodedLogin._id).toEqual(decodedSignup._id);
+    expect(decodedLogin.exp).toBeCloseTo(decodedLogin.exp);
+
     header.authorization = `Bearer ${token}`;
     done()
   });
@@ -94,7 +98,7 @@ describe('Pinterest ', () => {
   it('should create board', async () => {
     const command = 'createBoard';
     const body = {
-      query :`mutation { ${command}(${boardString}) {
+      query: `mutation { ${command}(${makeString(boardObject)}) {
 		_id name creator { username first_name } } }`
     };
 
@@ -104,9 +108,9 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    boardID = resource.body.data[command]._id;
+    boardID = resource.body.data[ command ]._id;
 
-    const resultingBoard = resource.body.data[command];
+    const resultingBoard = resource.body.data[ command ];
 
     expect(resultingBoard.creator.username).toEqual(userObject.username);
     expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
@@ -115,8 +119,9 @@ describe('Pinterest ', () => {
 
   it('should create Pin', async () => {
     const command = 'createPin';
-    const body = { query :
-        `mutation { ${command}(board: "${boardID}", ${pinString}) 
+    const body = {
+      query:
+        `mutation { ${command}(board: "${boardID}", ${makeString(pinObject)}) 
           { 
             _id name created_at 
             board {  created_at description name} 
@@ -131,8 +136,8 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    pinID = resource.body.data[command]._id;
-    const resultingPin = resource.body.data[command];
+    pinID = resource.body.data[ command ]._id;
+    const resultingPin = resource.body.data[ command ];
 
     expect(resultingPin.creator.username).toEqual(userObject.username);
     expect(resultingPin.name).toEqual(pinObject.name);
@@ -143,7 +148,7 @@ describe('Pinterest ', () => {
     const command = 'getBoard';
 
     const body = {
-      query :`{ ${command}(_id  : "${boardID}") 
+      query: `{ ${command}(_id  : "${boardID}") 
         { 
           _id name
           creator { username first_name } 
@@ -157,7 +162,7 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    const resultingBoard = resource.body.data[command];
+    const resultingBoard = resource.body.data[ command ];
 
     expect(resultingBoard.creator.username).toEqual(userObject.username);
     expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
@@ -168,7 +173,7 @@ describe('Pinterest ', () => {
     const command = 'getPin';
 
     const body = {
-      query :`{ ${command}(_id: "${pinID}") 
+      query: `{ ${command}(_id: "${pinID}") 
         { 
           _id name
           creator { username first_name } 
@@ -183,7 +188,7 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    const resultingPin = resource.body.data[command];
+    const resultingPin = resource.body.data[ command ];
 
     expect(resultingPin.creator.username).toEqual(userObject.username);
     expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
@@ -196,7 +201,7 @@ describe('Pinterest ', () => {
     const command = 'getUser';
 
     const body = {
-      query :`{ ${command} 
+      query: `{ ${command} 
         { 
           username first_name last_name
           pins { name _id }
@@ -211,7 +216,7 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    const resultingUser = resource.body.data[command];
+    const resultingUser = resource.body.data[ command ];
     const [ resultPin ]: IPin[] = resultingUser.pins;
     const [ resultBoard ]: IBoard[] = resultingUser.boards;
 
@@ -229,7 +234,7 @@ describe('Pinterest ', () => {
     const command = 'deletePin';
 
     const body = {
-      query :`mutation { ${command} (_id: "${pinID}")
+      query: `mutation { ${command} (_id: "${pinID}")
         { 
           name note
           board { name }
@@ -244,7 +249,7 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    const resultingPin = resource.body.data[command];
+    const resultingPin = resource.body.data[ command ];
     const creator: IUser = resultingPin.creator;
     const board: IBoard = resultingPin.board;
 
@@ -260,7 +265,7 @@ describe('Pinterest ', () => {
     const command = 'deleteBoard';
 
     const body = {
-      query :`mutation { ${command} (_id: "${boardID}")
+      query: `mutation { ${command} (_id: "${boardID}")
         { 
           name description
           creator { username first_name last_name }   
@@ -274,7 +279,7 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    const resultingBoard = resource.body.data[command];
+    const resultingBoard = resource.body.data[ command ];
     const creator: IUser = resultingBoard.creator;
 
     expect(resultingBoard.name).toEqual(boardObject.name);
@@ -287,7 +292,7 @@ describe('Pinterest ', () => {
     const command = 'getUser';
 
     const body = {
-      query :`{ ${command}
+      query: `{ ${command}
         { 
           username first_name last_name
           pins { name _id }
@@ -302,10 +307,10 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    const resultingUser = resource.body.data[command];
+    const resultingUser = resource.body.data[ command ];
 
-    expect(resultingUser.pins).toBe(null);
-    expect(resultingUser.boards).toBe(null);
+    expect(resultingUser.pins).toBeNull();
+    expect(resultingUser.boards).toBeNull();
 
     expect(resultingUser.first_name).toEqual(userObject.first_name);
     expect(resultingUser.last_name).toEqual(userObject.last_name);
