@@ -137,6 +137,20 @@ fragment pinResult on Pin {
 
 ```
 
+# Subscription
+To reflect subscription: 
+1. Send one of requests
+```graphql
+	getAllPins {
+		name
+	}
+
+	getAllUsers {
+		username
+	}
+```
+2. Go to [localhost](http://localhost:5555/)
+3. Click only button there is.
 ### Production
 
 ```bash

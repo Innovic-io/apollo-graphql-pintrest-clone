@@ -1,0 +1,32 @@
+<html>
+<head>
+
+</head>
+<body>
+
+<button type="button"
+        onclick="clicked()">
+  Click me to send request.
+</button>
+
+<p id="demo"></p>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  function clicked() {
+    var socket = io();
+
+    socket.on('connect', (notSureWhat) => {
+
+      socket.on('emmit_change', (input) => {
+
+        var current = document.getElementById('demo').innerHTML || '';
+        current = current.concat(JSON.stringify(input));
+
+        document.getElementById('demo').innerHTML = current;
+      });
+    });
+  }
+</script>
+</body>
+</html>

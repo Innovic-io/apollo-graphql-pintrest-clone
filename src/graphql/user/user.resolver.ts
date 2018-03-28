@@ -2,6 +2,7 @@ import UserService from './user.service';
 import IUser from './user.interface';
 import { IAuthorization } from '../../authorization/authorization.interface';
 import { USERS_ELEMENT } from '../common/common.constants';
+import { pubsub, USER_CHANGED_TOPIC } from '../subscription/subscription.resolver';
 
 const userService = new UserService();
 
@@ -11,7 +12,10 @@ const userService = new UserService();
 const userResolver = {
   Query: {
 
-    async getAllUsers(parent, args) {
+    async getAllUsers() {
+      const allUsers = await userService.getAll();
+      const [ single ] = allUsers;
+      pubsub.publish(USER_CHANGED_TOPIC, { userChanged: single.username });
 
       return await userService.getAll();
     },

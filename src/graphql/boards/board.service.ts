@@ -4,10 +4,19 @@ import { Observable } from 'rxjs/Observable';
 import { DatabaseService } from '../common/database.service';
 import IBoard from './board.interface';
 import {
-  addCreator, createObjectID, findByElementKey, getServiceById, removeCreator,
+  addCreator,
+  createObjectID,
+  findByElementKey,
+  getServiceById,
+  removeCreator,
 } from '../common/helper.functions';
-import { ALREADY_EXIST_ERROR, DOES_NOT_EXIST, PERMISSION_DENIED, SERVICE_ENUM } from '../common/common.constants';
-import { USERS_ELEMENT } from '../common/common.constants';
+import {
+  ALREADY_EXIST_ERROR,
+  DOES_NOT_EXIST,
+  PERMISSION_DENIED,
+  SERVICE_ENUM,
+  USERS_ELEMENT
+} from '../common/common.constants';
 import IUser from '../user/user.interface';
 
 /**
@@ -55,7 +64,7 @@ export default class BoardService {
    */
   async getBoardFollowing(_id: ObjectID): Promise<IBoard[]> {
 
-    const result = await this.database.find({followers: { $in: [_id] }});
+    const result = await this.database.find<IBoard>({ followers: { $in: [ _id ] } });
 
     return result.toArray();
   }
@@ -178,7 +187,7 @@ export default class BoardService {
    * @returns {Promise<IBoard[]>}
    */
   async getCreators(_id: ObjectID): Promise<IBoard[]> {
-    const result = await this.database.find({creator: _id});
+    const result = await this.database.find<IBoard>({ creator: _id });
 
     return result.toArray();
   }

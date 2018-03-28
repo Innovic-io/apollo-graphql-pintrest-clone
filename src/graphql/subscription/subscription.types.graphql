@@ -1,0 +1,5 @@
+type Subscription {
+
+  userChanged: User
+  pinChanged: Pin
+}

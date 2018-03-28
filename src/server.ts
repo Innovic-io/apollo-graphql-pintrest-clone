@@ -4,8 +4,12 @@ import { graphqlExpress } from 'apollo-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as bodyParser from 'body-parser';
 
+import * as socketIo from 'socket.io';
+import { join } from 'path';
+import * as http from 'http';
+
 import { API_ENDPOINT, PORT } from './server.constants';
-import typeDefs from './typeDefs';
+import { getDataOnFly } from './typeDefs';
 import pinResolver from './graphql/pins/pin.resolver';
 import userResolver from './graphql/user/user.resolver';
 import boardResolver from './graphql/boards/board.resolver';
@@ -13,15 +17,19 @@ import scalarResolverFunctions from './graphql/scalars/scalars.resolver';
 import AuthorizationMiddleware from './authorization/authorization.middleware';
 import { IAuthorization } from './authorization/authorization.interface';
 
-const schema = makeExecutableSchema({
-  resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
-  typeDefs,
-});
+export let socket;
 
 async function bootstrap() {
+  const typeDefs = await getDataOnFly();
+
+  const schema = makeExecutableSchema({
+    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
+    typeDefs,
+  });
 
   const app = express();
 
+  socket = socketIo(new http.Server(app).listen(PORT));
   app.use(bodyParser.json(),
     multer().any(),
     (req, res, next) => next());
@@ -33,10 +41,16 @@ async function bootstrap() {
       // tslint:disable-next-line
       context: req['user'] as IAuthorization,
     })),
-
   );
 
-  await app.listen(+PORT || 3000);
+  app.get('/', (request, response) => {
+
+    response.sendFile(join(__dirname, '../client/index.html'));
+  });
+
+  // await app.listen(+PORT || 3000, () => {
+  //   console.log('Running server on port %s', PORT);
+  // });
 }
 
 bootstrap();

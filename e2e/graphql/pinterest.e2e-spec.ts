@@ -10,7 +10,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import pinResolver from '../../src/graphql/pins/pin.resolver';
 import { decodeToken } from '../../src/graphql/common/cryptography';
 import boardResolver from '../../src/graphql/boards/board.resolver';
-import typeDefs from '../../src/typeDefs';
+import { typeDefs } from '../../src/typeDefs';
 import scalarResolverFunctions from '../../src/graphql/scalars/scalars.resolver';
 import userResolver from '../../src/graphql/user/user.resolver';
 import { DatabaseService } from '../../src/graphql/common/database.service';
@@ -28,17 +28,20 @@ describe('Pinterest ', () => {
     typeDefs,
   });
 
-  const server = express()
-    .post(
-      API_ENDPOINT,
-      bodyParser.json(),
-      AuthorizationMiddleware,
-      graphqlExpress((req) => Object.assign(
-        {
-          schema,
-          context: req[ 'user' ] as IAuthorization
-        }))
-    );
+  const server = express();
+
+  server.use(bodyParser.json(),
+    (req, res, next) => next());
+
+  server.post(API_ENDPOINT,
+    AuthorizationMiddleware,
+    graphqlExpress((req) => Object.assign({
+      schema,
+      // tslint:disable-next-line
+      context: req[ 'user' ] as IAuthorization,
+    })),
+  );
+
 
   let token;
   let boardID;
