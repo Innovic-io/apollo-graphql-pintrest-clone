@@ -108,48 +108,126 @@ mongo.Collection.prototype.getData = async function () {
         },
       ])
         .toArray();
-
+/*
     case 'users':
-      return this.find({})/*this.aggregate([
-          {
-            $lookup: {
-              from: 'boards',
-              localField: 'boards',
-              foreignField: '_id',
-              as: 'boards',
-            },
+      return this.aggregate([
+        {
+          $lookup: {
+            from: 'boards',
+            localField: 'boards',
+            foreignField: '_id',
+            as: 'boards',
           },
-          {
-            $lookup: {
-              from: 'pins',
-              localField: 'pins',
-              foreignField: '_id',
-              as: 'pins',
-            },
+        },
+        {
+          $lookup: {
+            from: 'pins',
+            localField: 'pins',
+            foreignField: '_id',
+            as: 'pins',
           },
-          {
-            $lookup: {
-              from: 'users',
-              localField: 'following',
-              foreignField: '_id',
-              as: 'following',
-            },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'following',
+            foreignField: '_id',
+            as: 'following',
           },
-          {
-            $project: {
-              _id: 1,
-              following: 1,
-              first_name: 1,
-              username: 1,
-              created_at: 1,
-              boards: 1,
-              pins: 1,
+        },
+        {
+          $project: {
+            _id: 1,
+            following: 1,
+            first_name: 1,
+            username: 1,
+            created_at: 1,
+            boards: 1,
+            pins: 1,
 
-            }
           }
-        ])*/
+        }])
         .toArray();
 
+    case 'boards':
+      return this.aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'followers',
+            foreignField: '_id',
+            as: 'followers',
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'collaborators',
+            foreignField: '_id',
+            as: 'collaborators',
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'creator',
+            foreignField: '_id',
+            as: 'creator',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            followers: 1,
+            name: 1,
+            description: 1,
+            creator: { "$arrayElemAt": [ "$creator", 0 ] },
+            created_at: 1,
+            collaborators: 1,
+
+          }
+        }])
+        .toArray();
+
+    case 'pins':
+      return this.aggregate([
+
+        {
+          $lookup: {
+            from: 'boards',
+            localField: 'board',
+            foreignField: '_id',
+            as: 'board',
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'collaborators',
+            foreignField: '_id',
+            as: 'collaborators',
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'creator',
+            foreignField: '_id',
+            as: 'creator',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            board: { "$arrayElemAt": [ "$board", 0 ] },
+            note: 1,
+            creator: { "$arrayElemAt": [ "$creator", 0 ] },
+            created_at: 1,
+          }
+        }])
+        .toArray();
+*/
     default:
       return this.find({}).toArray();
   }

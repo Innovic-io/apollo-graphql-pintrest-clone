@@ -35,7 +35,7 @@ export const createObjectID = (id?: string | ObjectID) => {
  * @param searchValue
  * @returns {Promise<Service>}
  */
-export const findByElementKey = async <Service>(sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
+export const findByElementKey = async <Service> (sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
 
   return await sentDatabase.findOne<Service>({ [ elementKey ]: searchValue });
 };
@@ -47,7 +47,7 @@ export const findByElementKey = async <Service>(sentDatabase: Collection, elemen
  * @param {SERVICE_ENUM} serviceName
  * @returns {Promise<any>}
  */
-export const getServiceById = async <T>(_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
+export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
 
   const db = await DatabaseService.getDB();
   return await db.collection(serviceName)

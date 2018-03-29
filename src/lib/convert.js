@@ -1,5 +1,5 @@
 // tslint:disable-next-line
-const {isValid} = require('./object.id');
+const { isValid } = require('./object.id');
 
 let graphQL = [];
 
@@ -54,6 +54,9 @@ function makeType(element, key) {
 
       if (element instanceof Array) {
         const [ arrayElement ] = element;
+        if(!arrayElement) {
+          return undefined;
+        }
 
         return `[ ${makeType(arrayElement, key)} ]`;
       }
@@ -124,7 +127,6 @@ function addSubTypes(collectionData) {
   if (!graphQL.includes(result)) {
     return result;
   }
-  return '';
 }
 
 function createGraphQL(collectionData) {

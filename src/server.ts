@@ -47,10 +47,6 @@ async function bootstrap() {
 
     response.sendFile(join(__dirname, '../client/index.html'));
   });
-
-  // await app.listen(+PORT || 3000, () => {
-  //   console.log('Running server on port %s', PORT);
-  // });
 }
 
 bootstrap();

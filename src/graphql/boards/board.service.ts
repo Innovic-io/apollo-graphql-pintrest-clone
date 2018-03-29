@@ -15,7 +15,7 @@ import {
   DOES_NOT_EXIST,
   PERMISSION_DENIED,
   SERVICE_ENUM,
-  USERS_ELEMENT
+  USERS_ELEMENT,
 } from '../common/common.constants';
 import IUser from '../user/user.interface';
 
