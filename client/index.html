@@ -4,28 +4,39 @@
 </head>
 <body>
 
-<button type="button"
-        onclick="clicked()">
-  Click me to send request.
-</button>
-
-<p id="demo"></p>
+<p id="users"></p>
+<p id="pins"></p>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  function clicked() {
-    var socket = io();
+  var socket = io();
+  socket.connect();
+  socket.on('connect', (notSureWhat) => {
+    console.log('welcome new user');
+    socket.on('user_change', (input) => {
 
-    socket.on('connect', (notSureWhat) => {
+      var current = document.getElementById('users').innerHTML || '';
+      current = current.concat(JSON.stringify(input));
 
-      socket.on('emmit_change', (input) => {
-
-        var current = document.getElementById('demo').innerHTML || '';
-        current = current.concat(JSON.stringify(input));
-
-        document.getElementById('demo').innerHTML = current;
-      });
+      document.getElementById('users').innerHTML = current;
     });
+
+    socket.on('pin_change', (input) => {
+
+      var current = document.getElementById('pins').innerHTML || '';
+      current = current.concat(JSON.stringify(input));
+
+      document.getElementById('pins').innerHTML = current;
+    });
+
+    socket.on('disconnect', (input) => console.log('disconnecting') );
+  });
+</script>
+<script>
+  counter = 0;
+  function clicked() {
+
+    var request = 'http://localhost:5555/v1/pinterest?query={getAllUsers{username}}';
   }
 </script>
 </body>

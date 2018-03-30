@@ -17,6 +17,7 @@ async function bootstrap() {
   const app = express();
 
   socket = socketIo(new http.Server(app).listen(PORT));
+
   app.use(bodyParser.json(),
     multer().any(),
     (req, res, next) => next());
@@ -29,6 +30,11 @@ async function bootstrap() {
   app.get('/', (request, response) => {
     response.sendFile(join(__dirname, '../client/index.html'));
   });
+/*
+    app.get('/graphi', graphiqlExpress({
+      endpointURL: API_ENDPOINT
+    }));
+*/
 }
 
 async function mainFunction() {
@@ -38,11 +44,11 @@ async function mainFunction() {
 
   await bootstrap();
 
-  setTimeout(async () => {
+//  setTimeout(async () => {
 
-      GRAPHQL_MIDDLEWARE.replace(await changeSchema());
-    },
-    10000);
+  //    GRAPHQL_MIDDLEWARE.replace(await changeSchema());
+  //  },
+  //  10000);
 }
 
 mainFunction();

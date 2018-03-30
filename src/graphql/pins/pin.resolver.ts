@@ -3,7 +3,7 @@ import { IAuthorization } from '../../authorization/authorization.interface';
 import { getServiceById } from '../common/helper.functions';
 import { SERVICE_ENUM } from '../common/common.constants';
 import IPin from './pin.interface';
-import { pubsub, USER_CHANGED_TOPIC } from '../subscription/subscription.resolver';
+import { PIN_CHANGED_TOPIC, pubsub } from '../subscription/subscription.resolver';
 
 const pinService = new PinService();
 
@@ -20,8 +20,7 @@ const pinResolver = {
 
       const allUsers = await pinService.getAllPins();
       const [ single ] = allUsers;
-      pubsub.publish(USER_CHANGED_TOPIC, { userChanged: single.creator });
-      pubsub.publish(USER_CHANGED_TOPIC, { pinChanged: single.name });
+      pubsub.publish(PIN_CHANGED_TOPIC, { pinChanged: single });
       return await pinService.getAllPins();
     },
 
