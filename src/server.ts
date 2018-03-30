@@ -16,17 +16,15 @@ import boardResolver from './graphql/boards/board.resolver';
 import scalarResolverFunctions from './graphql/scalars/scalars.resolver';
 import AuthorizationMiddleware from './authorization/authorization.middleware';
 import { IAuthorization } from './authorization/authorization.interface';
+import { DynamicMiddleware } from './authorization/dynamic.middleware';
 
 export let socket;
 
+const dinamic = new DynamicMiddleware();
+
 async function bootstrap() {
-  const typeDefs = await getDataOnFly();
 
-  const schema = makeExecutableSchema({
-    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
-    typeDefs,
-  });
-
+  dinamic.replace(await changeSchema());
   const app = express();
 
   socket = socketIo(new http.Server(app).listen(PORT));
@@ -36,17 +34,41 @@ async function bootstrap() {
 
   app.post(API_ENDPOINT,
     AuthorizationMiddleware,
-    graphqlExpress((req) => Object.assign({
-      schema,
-      // tslint:disable-next-line
-      context: req['user'] as IAuthorization,
-    })),
+    dinamic.handler(),
   );
 
   app.get('/', (request, response) => {
-
     response.sendFile(join(__dirname, '../client/index.html'));
   });
 }
 
-bootstrap();
+async function mainFunction() {
+  if(process.env.NODE_ENV === 'test') {
+    return;
+  }
+
+  await bootstrap();
+
+  setTimeout(async () => {
+
+    dinamic.replace(await changeSchema());
+    },
+    10000);
+}
+let counter = 0;
+async function changeSchema() {
+
+  const typeDefs = await getDataOnFly(counter++);
+  const schema = makeExecutableSchema({
+    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
+    typeDefs,
+  });
+
+  return graphqlExpress((req) => Object.assign({
+    schema,
+    // tslint:disable-next-line
+    context: req['user'] as IAuthorization,
+  }));
+}
+
+mainFunction();

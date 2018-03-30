@@ -1,9 +1,6 @@
-// tslint:disable-next-line
-const { isValid } = require('./object.id');
+const { isValid, ObjectID } = require('./object.id');
 
-let graphQL = [];
-
-const userCalls = [ 'creator', 'followers', 'collaborators', 'following' ];
+let entireCollectionData;
 
 function filterOutDistinctKeys(data) {
   let items = [ data ];
@@ -17,7 +14,11 @@ function filterOutDistinctKeys(data) {
   items
     .forEach((element) => Object.keys(element)
       .filter((objectKey) => !!element[ objectKey ])
-      .forEach((objectKey) => input.push({[ objectKey ]: element[ objectKey ]})));
+      .filter((objectKey) => objectKey !== 'relations')
+      .forEach((objectKey) =>
+        input.push({[ objectKey ]: element[ objectKey ]})
+      )
+    );
 
   const item = Object.assign({}, ...input);
   for (const key of Object.keys(item)) {
@@ -54,21 +55,81 @@ function makeType(element, key) {
 
       if (element instanceof Array) {
         const [ arrayElement ] = element;
-        if(!arrayElement) {
-          return undefined;
+        if (!arrayElement) {
+          return;
         }
 
         return `[ ${makeType(arrayElement, key)} ]`;
       }
 
       if (isValid(element)) {
-        if (key.toLocaleLowerCase() === '_id') {
+        element = new ObjectID(element);
+
+        if (key.toLocaleLowerCase() === '_id' || key.toLocaleLowerCase() === 'id') {
+
           return 'ID';
         }
 
-        if (userCalls.includes(key.toLocaleLowerCase())) {
-          return 'User';
+        if (!entireCollectionData) {
+
+          return capitilize(key);
         }
+
+        const isExistingSubType = entireCollectionData
+          .map((collectionNames) => Object
+            .keys(collectionNames)
+            .map((collectionKey) => subTypeName(collectionNames[ collectionKey ], collectionKey, element))
+            .join(''),
+          )
+          .filter((foundCollections) => !!foundCollections && foundCollections.length > 0);
+
+
+        if (isExistingSubType.length > 1) {
+          throw new Error('More that one collection found');
+        }
+
+        if (isExistingSubType.length === 1) {
+          return capitilize(toSingular(isExistingSubType.join('')));
+        }
+      }
+
+      if (!entireCollectionData) {
+
+        return capitilize(key);
+      }
+
+      let collectionArray = [ entireCollectionData ];
+
+      if (entireCollectionData instanceof Array) {
+        collectionArray = entireCollectionData;
+      }
+
+      const type = collectionArray
+        .map((singleElement) => {
+          const [ elementKey ] = Object.keys(singleElement);
+
+          if (singleElement[ elementKey ] instanceof Array) {
+
+            return (!!singleElement[ elementKey ]
+              .find((objectElement) => {
+                if (isValid(element)) {
+                  return objectElement._id.equals(element);
+                }
+
+                if(!objectElement._id) {
+                  return;
+                }
+
+                return objectElement._id.equals(element._id);
+              })) ? elementKey : undefined;
+          }
+        })
+        .filter((objectKeys) => !!objectKeys);
+
+      const [ references ] = type;
+
+      if (!!references) {
+        return capitilize(toSingular(references));
       }
 
       return capitilize(toSingular(key));
@@ -76,6 +137,37 @@ function makeType(element, key) {
     default:
       return element;
   }
+}
+
+function subTypeName(entireCollection, collectionKey, element = '') {
+
+  if (entireCollection instanceof Date) {
+    return;
+  }
+
+  if (entireCollection instanceof Array) {
+
+    const foundCollection = entireCollection.find((singleElement) => {
+
+      if (isValid(singleElement)) {
+        return singleElement.equals(element);
+      }
+
+      if (!singleElement._id) {
+        return true
+      }
+      return singleElement._id.equals(element);
+    });
+
+    return (!!foundCollection) ? collectionKey : undefined;
+  }
+
+  if (!entireCollection || !entireCollection._id) {
+
+    return typeof collectionKey;
+  }
+
+  return collectionKey;
 }
 
 function capitilize(name) {
@@ -100,37 +192,48 @@ function toCamelCase(name) {
 }
 
 function createGraphQLType(typeName, data) {
-  return `type ${capitilize(typeName)} {\n${data.map((item) => `\t${item.dataKey}: ${item.dataType}`).join('\n')}\n}`;
+
+  const toPrint = data
+    .filter((item) => !!item.dataType)
+    .map((item) => `\t${item.dataKey}: ${item.dataType}`)
+    .join('\n');
+
+  return `type ${capitilize(typeName)} {\n${toPrint}\n}`;
 }
 
 function addSubTypes(collectionData) {
 
-  let single;
+  if(!collectionData) {
+    return;
+  }
 
-  if (collectionData instanceof Array) {
-    [ single ] = collectionData;
-  } else {
-    single = collectionData;
-  }
-  if (!single) {
-    return '';
-  }
-  const result = Object
-    .keys(single)
-    .filter((key) => typeof single[ key ] === 'object')
-    .filter((key) => !isValid(single[ key ]))
-    .filter((key) => !userCalls.includes(key))
-    .filter((key) => !(single[ key ] instanceof Date))
-    .map((key) => createGraphQLType(key, filterOutDistinctKeys(single[ key ])))
-    .join('');
+  const collectionArray = (collectionData instanceof Array) ?
+    collectionData : [ collectionData ];
 
-  if (!graphQL.includes(result)) {
-    return result;
+  if (collectionArray.length === 0) {
+    return;
   }
+
+  return [].concat(...collectionArray
+    .map((single) => Object
+      .keys(single)
+      .filter((key) => typeof single[ key ] === 'object')
+      .filter((key) => !isValid(single[ key ]))
+      .filter((key) => !!single[ key ])
+      .filter((key) => !!subTypeName(single[ key ], key))
+      .filter((key) => !(single[ key ] instanceof Date))
+      .map((key) => createGraphQLType(
+        toSingular(key),
+        filterOutDistinctKeys(single[ key ]))
+      ),
+    )
+    .filter((listOfResults) => listOfResults.length > 0),
+  );
 }
 
 function createGraphQL(collectionData) {
-  graphQL = [];
+  const graphQL = [];
+  entireCollectionData = collectionData;
 
   if (collectionData instanceof Array) {
     collectionData
@@ -139,17 +242,33 @@ function createGraphQL(collectionData) {
     graphQL.push(...helperFunction(collectionData));
   }
 
-  return graphQL
+  const finalGraph = [];
+  graphQL
     .filter((element) => !!element)
+    .map((element) => {
+      const typeName = element.substring(0, element.indexOf(' {'));
+      if(!finalGraph.find((elemen) => element.length >= elemen.length && elemen.startsWith(typeName)) ) {
+        finalGraph.push(element);
+      }
+    });
+
+  return finalGraph
     .join('\n\n');
 }
 
 function helperFunction(collection) {
 
   return [].concat(...Object.keys(collection)
-    .map((collectionKey) => [].concat(addSubTypes(collection[ collectionKey ]),
-      createGraphQLType(toSingular(collectionKey), filterOutDistinctKeys(collection[ collectionKey ]))),
-    ));
+    .filter((collectionKey) => !!collection[collectionKey])
+    .map((collectionKey) => [].concat(
+      createGraphQLType(
+        toSingular(collectionKey),
+        filterOutDistinctKeys(collection[ collectionKey ]),
+      ),
+      addSubTypes(collection[ collectionKey ]),
+      )
+    ),
+  );
 }
 
 function toSingular(entryCollection) {
@@ -177,5 +296,13 @@ function toSingular(entryCollection) {
 }
 
 module.exports = {
-  createGraphQL
+  addSubTypes,
+  capitilize,
+  createGraphQL,
+  createGraphQLType,
+  filterOutDistinctKeys,
+  fistSmallLetter,
+  makeType,
+  toCamelCase,
+  toSingular,
 };

@@ -10,7 +10,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import pinResolver from '../../src/graphql/pins/pin.resolver';
 import { decodeToken } from '../../src/graphql/common/cryptography';
 import boardResolver from '../../src/graphql/boards/board.resolver';
-import { typeDefs } from '../../src/typeDefs';
+import { getDataOnFly } from '../../src/typeDefs';
 import scalarResolverFunctions from '../../src/graphql/scalars/scalars.resolver';
 import userResolver from '../../src/graphql/user/user.resolver';
 import { DatabaseService } from '../../src/graphql/common/database.service';
@@ -23,25 +23,7 @@ jest.setTimeout(100000);
 
 describe('Pinterest ', () => {
 
-  const schema = makeExecutableSchema({
-    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
-    typeDefs,
-  });
-
   const server = express();
-
-  server.use(bodyParser.json(),
-    (req, res, next) => next());
-
-  server.post(API_ENDPOINT,
-    AuthorizationMiddleware,
-    graphqlExpress((req) => Object.assign({
-      schema,
-      // tslint:disable-next-line
-      context: req[ 'user' ] as IAuthorization,
-    })),
-  );
-
 
   let token;
   let boardID;
@@ -56,7 +38,25 @@ describe('Pinterest ', () => {
   let header = { authorization: '' };
   // @ts-ignore
   beforeAll(async () => {
-      const db = await DatabaseService.getDB();
+
+    const schema = makeExecutableSchema({
+      resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
+      typeDefs: await getDataOnFly(0),
+    });
+
+    server.use(bodyParser.json(),
+      (req, res, next) => next());
+
+    server.post(API_ENDPOINT,
+      AuthorizationMiddleware,
+      graphqlExpress((req) => Object.assign({
+        schema,
+        // tslint:disable-next-line
+        context: req[ 'user' ] as IAuthorization,
+      })),
+    );
+
+    const db = await DatabaseService.getDB();
       db.dropDatabase();
     }
   );

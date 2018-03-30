@@ -8,15 +8,16 @@ import { getAllCollectionsData } from './lib/data.fetch';
 import { DatabaseService } from './graphql/common/database.service';
 import { BSON } from 'bson';
 
-const graphqls = (process.env.NODE_ENV === 'test') ?
-  glob.sync(join('./**/*.graphql')) : glob.sync(join('./src/graphql/common/**/*.graphql'));
+const graphqls = glob.sync(join('./**/*.graphql'));
 
-export const typeDefs = graphqls
-  .map((item) => readFileSync(item).toString()).join('');
-
-export async function getDataOnFly() {
-
-  const data = await getLoadedData();
+export async function getDataOnFly(counter) {
+  let data;
+  if (counter === 0) {
+    data = await getLoadedData();
+  } else {
+    const database = await DatabaseService.getDB();
+    data = await getAllCollectionsData(database);
+  }
 
   return graphqls
     .map((item) => readFileSync(item).toString())
@@ -34,10 +35,9 @@ async function getLoadedData() {
     const data = await getAllCollectionsData(database);
     writeFileSync(dataFileURL, new BSON().serialize(data));
     return data;
-  } else {
-
-    const dataFromBSON = new BSON().deserialize(readFileSync(dataFileURL));
-
-    return Object.values(dataFromBSON);
   }
+
+  const dataFromBSON = new BSON().deserialize(readFileSync(dataFileURL));
+
+  return Object.values(dataFromBSON);
 }
