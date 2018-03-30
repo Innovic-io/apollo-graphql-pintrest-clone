@@ -41,7 +41,7 @@ describe('Pinterest ', () => {
 
     const schema = makeExecutableSchema({
       resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
-      typeDefs: await getDataOnFly(0),
+      typeDefs: await getDataOnFly(false),
     });
 
     server.use(bodyParser.json(),

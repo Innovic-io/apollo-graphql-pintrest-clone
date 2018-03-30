@@ -1,20 +1,21 @@
 import * as glob from 'glob';
-
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { BSON } from 'bson';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 import { createGraphQL } from './lib/convert';
 import { getAllCollectionsData } from './lib/data.fetch';
 import { DatabaseService } from './graphql/common/database.service';
-import { BSON } from 'bson';
 
 const graphqls = glob.sync(join('./**/*.graphql'));
 
-export async function getDataOnFly(counter) {
+export async function getDataOnFly(readFromDatabase: boolean) {
   let data;
-  if (counter === 0) {
+  if (!readFromDatabase) {
+
     data = await getLoadedData();
   } else {
+
     const database = await DatabaseService.getDB();
     data = await getAllCollectionsData(database);
   }

@@ -157,6 +157,12 @@ To reflect subscription:
 docker-compose up -d
 ```
 
+## Change schema on fly
+On constant GRAPHQL_MIDDLEWARE from server.constants call method .replace(middleware) and pass it middleware which to put.
+Async function changeSchema(passedTypes?) from helper.functions is beta version of ExpressGraphQL middleware
+
+When adding middleware on server, GRAPHQL_MIDDLEWARE.haldler() will resolve that. Need to be called only on init.
+
 ### Commercial break
 
 <table style="border: 0">
