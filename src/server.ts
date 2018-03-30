@@ -43,7 +43,7 @@ async function bootstrap() {
 }
 
 async function mainFunction() {
-  if(process.env.NODE_ENV === 'test') {
+  if (process.env.NODE_ENV === 'test') {
     return;
   }
 
