@@ -1,4 +1,4 @@
-import { DynamicMiddleware } from './authorization/dynamic.middleware';
+import { DynamicMiddleware } from './dynamic.middleware';
 
 export const PORT = process.env.PORT;
 export const API_VERSION = process.env.API_VERSION;

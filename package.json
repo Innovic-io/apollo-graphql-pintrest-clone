@@ -21,7 +21,8 @@
     "multer": "^1.3.0",
     "request-promise": "latest",
     "rxjs": "latest",
-    "socket.io": "^2.0.4"
+    "socket.io": "^2.0.4",
+    "mongodb-to-graphql2": "latest"
   },
   "devDependencies": {
     "@types/dotenv": "^4.0.2",

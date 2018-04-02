@@ -2,9 +2,8 @@ import * as glob from 'glob';
 import { BSON } from 'bson';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { createFromDB, createGraphQL, getAllCollectionsData } from 'mongodb-to-graphql2';
 
-import { createGraphQL } from './lib/convert';
-import { getAllCollectionsData } from './lib/data.fetch';
 import { DatabaseService } from './graphql/common/database.service';
 
 const graphqls = glob.sync(join('./**/*.graphql'));
