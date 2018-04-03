@@ -5,14 +5,15 @@ import UserService from '../user/user.service';
 import IUser from '../user/user.interface';
 import { DatabaseService } from './database.service';
 import { comparePasswords, generateToken } from './cryptography';
-import scalarResolverFunctions from '../scalars/scalars.resolver';
 import { getDataOnFly } from '../../typeDefs';
-import pinResolver from '../pins/pin.resolver';
-import boardResolver from '../boards/board.resolver';
 import { makeExecutableSchema } from 'graphql-tools';
 import { IAuthorization } from '../../authorization/authorization.interface';
 import { graphqlExpress } from 'apollo-server-express';
+import scalarResolverFunctions from '../scalars/scalars.resolver';
+import pinResolver from '../pins/pin.resolver';
+import boardResolver from '../boards/board.resolver';
 import userResolver from '../user/user.resolver';
+import subscriptionResolver from '../subscription/subscription.resolver';
 
 let database;
 
@@ -115,7 +116,7 @@ export const changeSchema = async (passedTypes?) => {
   readFromDatabase = !readFromDatabase;
 
   const schema = makeExecutableSchema({
-    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
+    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions, subscriptionResolver ],
     typeDefs,
   });
 

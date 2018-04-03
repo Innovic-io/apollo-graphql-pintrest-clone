@@ -15,3 +15,5 @@ const subscriptionResolver = {
     pinChanged: { subscribe: () => pubsub.asyncIterator(PIN_CHANGED_TOPIC) },
   },
 };
+
+export default subscriptionResolver;

@@ -9,7 +9,7 @@ import { API_ENDPOINT, GRAPHQL_MIDDLEWARE, PORT } from './server.constants';
 import AuthorizationMiddleware from './authorization/authorization.middleware';
 import { changeSchema } from './graphql/common/helper.functions';
 
-export let socket;
+export let socket: socketIo.Server;
 
 async function bootstrap() {
 
@@ -30,11 +30,6 @@ async function bootstrap() {
   app.get('/', (request, response) => {
     response.sendFile(join(__dirname, '../client/index.html'));
   });
-/*
-    app.get('/graphi', graphiqlExpress({
-      endpointURL: API_ENDPOINT
-    }));
-*/
 }
 
 async function mainFunction() {
