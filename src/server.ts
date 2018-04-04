@@ -4,6 +4,7 @@ import * as bodyParser from 'body-parser';
 import * as socketIo from 'socket.io';
 import { join } from 'path';
 import * as http from 'http';
+import { execute, subscribe } from 'graphql';
 
 import { API_ENDPOINT, GRAPHQL_MIDDLEWARE, PORT } from './server.constants';
 import AuthorizationMiddleware from './authorization/authorization.middleware';
@@ -13,10 +14,14 @@ export let socket: socketIo.Server;
 
 async function bootstrap() {
 
-  GRAPHQL_MIDDLEWARE.replace(await changeSchema());
-  const app = express();
+  const changedSchema = await changeSchema();
+  GRAPHQL_MIDDLEWARE.replace(changedSchema.middleware);
 
-  socket = socketIo(new http.Server(app).listen(PORT));
+  const app = express();
+  const server = new http.Server(app)
+    .listen(PORT);
+
+  socket = socketIo(server);
 
   app.use(bodyParser.json(),
     multer().any(),
@@ -40,8 +45,8 @@ async function mainFunction() {
   await bootstrap();
 
 //  setTimeout(async () => {
-
-  //    GRAPHQL_MIDDLEWARE.replace(await changeSchema());
+  //  const changedSchema = await changeSchema();
+  //  GRAPHQL_MIDDLEWARE.replace(changedSchema.middleware);
   //  },
   //  10000);
 }

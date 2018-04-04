@@ -1,6 +1,6 @@
 <html>
 <head>
-
+  <title>SOME COOL TITLE</title>
 </head>
 <body>
 
@@ -9,13 +9,13 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  var socket = io();
+  const socket = io();
   socket.connect();
-  socket.on('connect', (notSureWhat) => {
+  socket.on('connect', () => {
     console.log('welcome new user');
     socket.on('user_change', (input) => {
 
-      var current = document.getElementById('users').innerHTML || '';
+      let current = document.getElementById('users').innerHTML || '';
       current = current.concat(JSON.stringify(input));
 
       document.getElementById('users').innerHTML = current;
@@ -23,21 +23,14 @@
 
     socket.on('pin_change', (input) => {
 
-      var current = document.getElementById('pins').innerHTML || '';
+      let current = document.getElementById('pins').innerHTML || '';
       current = current.concat(JSON.stringify(input));
 
       document.getElementById('pins').innerHTML = current;
     });
 
-    socket.on('disconnect', (input) => console.log('disconnecting') );
+    socket.on('disconnect', () => console.log('disconnecting') );
   });
-</script>
-<script>
-  counter = 0;
-  function clicked() {
-
-    var request = 'http://localhost:5555/v1/pinterest?query={getAllUsers{username}}';
-  }
 </script>
 </body>
 </html>

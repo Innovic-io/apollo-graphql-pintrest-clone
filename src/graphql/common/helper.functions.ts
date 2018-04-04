@@ -13,7 +13,6 @@ import scalarResolverFunctions from '../scalars/scalars.resolver';
 import pinResolver from '../pins/pin.resolver';
 import boardResolver from '../boards/board.resolver';
 import userResolver from '../user/user.resolver';
-import subscriptionResolver from '../subscription/subscription.resolver';
 
 let database;
 
@@ -43,6 +42,7 @@ export const createObjectID = (id?: string | ObjectID) => {
  * @param {Collection} sentDatabase
  * @param {string} elementKey
  * @param searchValue
+ *
  * @returns {Promise<Service>}
  */
 export const findByElementKey = async <Service> (sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
@@ -116,13 +116,17 @@ export const changeSchema = async (passedTypes?) => {
   readFromDatabase = !readFromDatabase;
 
   const schema = makeExecutableSchema({
-    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions, subscriptionResolver ],
+    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
     typeDefs,
   });
 
-  return graphqlExpress((req) => Object.assign({
+  return {
+    middleware: graphqlExpress(
+      (req) => Object.assign({
+        schema,
+        // tslint:disable-next-line
+        context: req[ 'user' ] as IAuthorization,
+      })),
     schema,
-    // tslint:disable-next-line
-    context: req['user'] as IAuthorization,
-  }));
+  }
 };

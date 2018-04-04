@@ -68,6 +68,11 @@ const pinResolver = {
       return await getServiceById(pin.board, SERVICE_ENUM.BOARDS);
     },
   },
+  Subscription: {
+    pinChanged: {
+      subscribe: () => pubsub.asyncIterator(PIN_CHANGED_TOPIC)
+    }
+  }
 };
 
 export default pinResolver;

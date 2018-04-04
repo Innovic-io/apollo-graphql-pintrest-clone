@@ -76,5 +76,9 @@ const userResolver = {
       return await userService.getFollowing(users._id, USERS_ELEMENT.BOARDS);
     },
   },
+
+  Subscription: {
+    userChanged: { subscribe: () => pubsub.asyncIterator(USER_CHANGED_TOPIC) },
+  },
 };
 export default userResolver;
