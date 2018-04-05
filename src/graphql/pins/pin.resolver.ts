@@ -21,7 +21,7 @@ const pinResolver = {
       const allUsers = await pinService.getAllPins();
       const [ single ] = allUsers;
       pubsub.publish(PIN_CHANGED_TOPIC, { pinChanged: single });
-      return await pinService.getAllPins();
+      return allUsers;
     },
 
     // get pins from authorized user
