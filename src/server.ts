@@ -3,8 +3,7 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as socketIo from 'socket.io';
 import { join } from 'path';
-import * as http from 'http';
-import { execute, subscribe } from 'graphql';
+import { Server } from 'http';
 
 import { API_ENDPOINT, GRAPHQL_MIDDLEWARE, PORT } from './server.constants';
 import AuthorizationMiddleware from './authorization/authorization.middleware';
@@ -18,7 +17,7 @@ async function bootstrap() {
   GRAPHQL_MIDDLEWARE.replace(changedSchema.middleware);
 
   const app = express();
-  const server = new http.Server(app)
+  const server = new Server(app)
     .listen(PORT);
 
   socket = socketIo(server);
@@ -44,11 +43,10 @@ async function mainFunction() {
 
   await bootstrap();
 
-//  setTimeout(async () => {
-  //  const changedSchema = await changeSchema();
-  //  GRAPHQL_MIDDLEWARE.replace(changedSchema.middleware);
-  //  },
-  //  10000);
+  setTimeout(() => changeSchema()
+      .then((changedSchema) => GRAPHQL_MIDDLEWARE
+        .replace(changedSchema.middleware)),
+    10000);
 }
 
 mainFunction();

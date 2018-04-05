@@ -5,13 +5,11 @@
     "lint": "tslint  './src/**/*.ts' -c tslint.json --fix",
     "e2e": "jest --config=e2e/jest-e2e.json --forceExit --useStderr --bail",
     "test": "jest",
-    "compile": "tsc --allowJs",
+    "compile": "tsc",
     "start:prod": "node ./dist/src/server.js",
-    "script": "mn2gql -d mongodb://localhost:23248/geoGameDB -c ocean -s database -m ModelName",
-    "scritp": "mn2gql -d mongodb://localhost:23248/geoGameDB -f name.graphql"
+    "script": "mn2gql -d mongodb://localhost:25555/PinterestDB -s pinterest"
   },
   "dependencies": {
-    "apollo-client": "^2.2.8",
     "apollo-server-express": "^1.3.2",
     "dotenv": "^4.0.0",
     "express": "^4.16.2",
@@ -25,8 +23,7 @@
     "multer": "^1.3.0",
     "request-promise": "latest",
     "rxjs": "latest",
-    "socket.io": "^2.0.4",
-    "subscriptions-transport-ws": "^0.9.7"
+    "socket.io": "^2.0.4"
   },
   "devDependencies": {
     "@types/dotenv": "^4.0.2",
