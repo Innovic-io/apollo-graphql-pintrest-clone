@@ -70,9 +70,9 @@ const pinResolver = {
   },
   Subscription: {
     pinChanged: {
-      subscribe: () => pubsub.asyncIterator(PIN_CHANGED_TOPIC)
-    }
-  }
+      subscribe: () => pubsub.asyncIterator(PIN_CHANGED_TOPIC),
+    },
+  },
 };
 
 export default pinResolver;

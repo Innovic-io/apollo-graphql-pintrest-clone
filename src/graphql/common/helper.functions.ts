@@ -128,5 +128,5 @@ export const changeSchema = async (passedTypes?) => {
         context: req[ 'user' ] as IAuthorization,
       })),
     schema,
-  }
+  };
 };

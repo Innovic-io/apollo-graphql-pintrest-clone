@@ -1,27 +1,27 @@
 import * as glob from 'glob';
-import { BSON } from 'bson';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { createFromDB, createGraphQL, getAllCollectionsData } from 'mongodb-to-graphql2';
+import { createFromDB } from 'mongodb-to-graphql2';
 
-import { DatabaseService } from './graphql/common/database.service';
+import { DATABASE_URI } from './server.constants';
 
 const graphqls = glob.sync(join('./**/*.graphql'));
 
 export async function getDataOnFly(readFromDatabase: boolean) {
   let data;
+
   if (!readFromDatabase) {
 
     data = await getLoadedData();
+
   } else {
 
-    const database = await DatabaseService.getDB();
-    data = await getAllCollectionsData(database);
-  }
+    data = await createFromDB(DATABASE_URI);
 
+  }
   return graphqls
     .map((item) => readFileSync(item).toString())
-    .concat(createGraphQL(data))
+    .concat(data)
     .join('');
 }
 
@@ -30,14 +30,11 @@ async function getLoadedData() {
 
   if (!existsSync(dataFileURL)) {
 
-    const database = await DatabaseService.getDB();
-
-    const data = await getAllCollectionsData(database);
-    writeFileSync(dataFileURL, new BSON().serialize(data));
-    return data;
+    return await createFromDB(DATABASE_URI)
+      .then((resultingData) => {
+        writeFileSync(dataFileURL, resultingData);
+        return resultingData;
+      });
   }
-
-  const dataFromBSON = new BSON().deserialize(readFileSync(dataFileURL));
-
-  return Object.values(dataFromBSON);
+  return readFileSync(dataFileURL);
 }

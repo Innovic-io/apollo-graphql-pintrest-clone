@@ -6,7 +6,7 @@
 
 <p id="users"></p>
 <p id="pins"></p>
-
+<button type="button" onclick="socket.connect()">Refresh Socket</button>
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
@@ -29,7 +29,7 @@
       document.getElementById('pins').innerHTML = current;
     });
 
-    socket.on('disconnect', () => console.log('disconnecting') );
+    socket.on('disconnect', () => { console.log('disconnecting'); socket.disconnect();} );
   });
 </script>
 </body>
