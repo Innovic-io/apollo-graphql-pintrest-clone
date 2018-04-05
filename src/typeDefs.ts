@@ -2,6 +2,7 @@ import * as glob from 'glob';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { createFromDB } from 'mongodb-to-graphql2';
+import { BSON } from 'bson';
 
 import { DATABASE_URI } from './server.constants';
 
@@ -29,12 +30,13 @@ async function getLoadedData() {
   const dataFileURL = join(__dirname, 'data.bson');
 
   if (!existsSync(dataFileURL)) {
-
     return await createFromDB(DATABASE_URI)
       .then((resultingData) => {
-        writeFileSync(dataFileURL, resultingData);
+        writeFileSync(dataFileURL, new BSON().serialize(resultingData));
         return resultingData;
       });
   }
-  return readFileSync(dataFileURL);
+  const BSONResult = new BSON().deserialize(readFileSync(dataFileURL));
+
+  return Object.values(BSONResult).join('');
 }
