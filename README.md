@@ -137,11 +137,31 @@ fragment pinResult on Pin {
 
 ```
 
+# Subscription
+To reflect subscription: 
+1. Send one of requests
+```graphql
+	getAllPins {
+		name
+	}
+
+	getAllUsers {
+		username
+	}
+```
+2. Go to [localhost](http://localhost:5555/)
+3. Click only button there is.
 ### Production
 
 ```bash
 docker-compose up -d
 ```
+
+## Change schema on fly
+On constant GRAPHQL_MIDDLEWARE from server.constants call method .replace(middleware) and pass it middleware which to put.
+Async function changeSchema(passedTypes?) from helper.functions is beta version of ExpressGraphQL middleware
+
+When adding middleware on server, GRAPHQL_MIDDLEWARE.haldler() will resolve that. Need to be called only on init.
 
 ### Commercial break
 

@@ -1,0 +1,31 @@
+type Pin {
+	_id: ID
+	name: String
+	board: Board
+	creator: User
+	note: String
+	created_at: Date
+}
+
+type User {
+	_id: ID
+	username: String
+	password: String
+	first_name: String
+	salt: String
+	created_at: Date
+	boards: [ Board ]
+	pins: [ Pin ]
+	last_name: String
+	following: [ User ]
+}
+
+type Board {
+	_id: ID
+	name: String
+	description: String
+	creator: User
+	followers: [ User ]
+	collaborators: [ User ]
+	created_at: Date
+}

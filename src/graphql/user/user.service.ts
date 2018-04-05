@@ -4,7 +4,7 @@ import 'rxjs/add/observable/forkJoin';
 
 import IUser from './user.interface';
 import { createObjectID, findByElementKey, getServiceById, makeToken } from '../common/helper.functions';
-import { ALREADY_EXIST_ERROR, DOES_NOT_EXIST, SERVICE_ENUM, USERS_ELEMENT, } from '../common/common.constants';
+import { ALREADY_EXIST_ERROR, DOES_NOT_EXIST, SERVICE_ENUM, USERS_ELEMENT } from '../common/common.constants';
 import { DatabaseService } from '../common/database.service';
 import { hashPassword, IHashedPassword } from '../common/cryptography';
 

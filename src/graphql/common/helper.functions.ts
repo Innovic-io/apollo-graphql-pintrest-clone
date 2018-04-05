@@ -5,6 +5,14 @@ import UserService from '../user/user.service';
 import IUser from '../user/user.interface';
 import { DatabaseService } from './database.service';
 import { comparePasswords, generateToken } from './cryptography';
+import { getDataOnFly } from '../../typeDefs';
+import { makeExecutableSchema } from 'graphql-tools';
+import { IAuthorization } from '../../authorization/authorization.interface';
+import { graphqlExpress } from 'apollo-server-express';
+import scalarResolverFunctions from '../scalars/scalars.resolver';
+import pinResolver from '../pins/pin.resolver';
+import boardResolver from '../boards/board.resolver';
+import userResolver from '../user/user.resolver';
 
 let database;
 
@@ -28,14 +36,16 @@ export const createObjectID = (id?: string | ObjectID) => {
 };
 
 /**
+ *
  * Get one result from collection by elementKey
  *
  * @param {Collection} sentDatabase
  * @param {string} elementKey
  * @param searchValue
+ *
  * @returns {Promise<Service>}
  */
-export const findByElementKey = async <Service>(sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
+export const findByElementKey = async <Service> (sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
 
   return await sentDatabase.findOne<Service>({ [ elementKey ]: searchValue });
 };
@@ -47,7 +57,7 @@ export const findByElementKey = async <Service>(sentDatabase: Collection, elemen
  * @param {SERVICE_ENUM} serviceName
  * @returns {Promise<any>}
  */
-export const getServiceById = async <T>(_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
+export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
 
   const db = await DatabaseService.getDB();
   return await db.collection(serviceName)
@@ -98,4 +108,25 @@ export const makeToken = async (user: IUser, password: string): Promise<string> 
   }
 
   return await generateToken({ _id: user._id });
+};
+
+let readFromDatabase = false;
+export const changeSchema = async (passedTypes?) => {
+  const typeDefs = passedTypes || await getDataOnFly(readFromDatabase);
+  readFromDatabase = !readFromDatabase;
+
+  const schema = makeExecutableSchema({
+    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
+    typeDefs,
+  });
+
+  return {
+    middleware: graphqlExpress(
+      (req) => Object.assign({
+        schema,
+        // tslint:disable-next-line
+        context: req[ 'user' ] as IAuthorization,
+      })),
+    schema,
+  };
 };
