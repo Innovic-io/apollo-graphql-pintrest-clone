@@ -12,7 +12,7 @@ import {
 } from '../../common/common.constants';
 import { IUser } from '../user/user.interface';
 import { IDatabaseService } from '../../database/interfaces/database.interface';
-import { TYPES } from '../../inversify/inversify.types';
+import { SERVICE_TYPES } from '../../inversify/inversify.types';
 
 /**
  * Service to control data of Board type and Board collection
@@ -24,7 +24,7 @@ export default class BoardService implements IBoardService {
   private database: Collection;
 
   constructor(
-    @inject(TYPES.DatabaseService) injectedDatabase: IDatabaseService,
+    @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService,
   ) {
 
       injectedDatabase.getDB()

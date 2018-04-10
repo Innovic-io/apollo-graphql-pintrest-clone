@@ -10,17 +10,14 @@ import AuthorizationMiddleware from '../../src/authorization/authorization.middl
 import { makeExecutableSchema } from 'graphql-tools';
 import { decodeToken } from '../../src/common/cryptography';
 import { getDataOnFly } from '../../src/typeDefs';
-import boardResolver from '../../src/graphql/boards/board.resolver';
-import pinResolver from '../../src/graphql/pins/pin.resolver';
-import scalarResolverFunctions from '../../src/graphql/scalars/scalars.resolver';
-import userResolver from '../../src/graphql/user/user.resolver';
 import { makeString } from '../../src/common/helper.functions';
-import { IUser } from '../../src/graphql/user/user.interface';
-import { IPin } from '../../src/graphql/pins/pin.interface';
-import { IBoard } from '../../src/graphql/boards/board.interface';
+import { IUser, IUserResolver } from '../../src/graphql/user/user.interface';
+import { IPin, IPinResolver } from '../../src/graphql/pins/pin.interface';
+import { IBoard, IBoardResolver } from '../../src/graphql/boards/board.interface';
 import { rootContainer } from '../../src/inversify/inversify.config';
-import { TYPES } from '../../src/inversify/inversify.types';
+import { RESOLVER_TYPES, SERVICE_TYPES } from '../../src/inversify/inversify.types';
 import { IDatabaseService } from '../../src/database/interfaces/database.interface';
+import { IScalarsResolver } from '../../src/graphql/scalars/scalars.interface';
 
 jest.setTimeout(100000);
 
@@ -43,7 +40,12 @@ describe('Pinterest ', () => {
   beforeAll(async () => {
 
     const schema = makeExecutableSchema({
-      resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
+      resolvers: [
+        rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
+        rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
+        rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
+        rootContainer.get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
+      ],
       typeDefs: await getDataOnFly(false),
     });
 
@@ -60,7 +62,7 @@ describe('Pinterest ', () => {
     );
 
     const db = await rootContainer
-      .get<IDatabaseService>(TYPES.DatabaseService)
+      .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
       .getDB();
 
       db.dropDatabase();

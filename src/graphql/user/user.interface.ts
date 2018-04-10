@@ -29,3 +29,11 @@ export interface IUserService {
   getAll(): Promise<IUser[]>;
   login(username: string, password: string): Promise<string>;
 }
+
+export interface IUserResolver {
+  setQuery(): IUserResolver;
+  setSubscriptions(): IUserResolver;
+  setUser(): IUserResolver;
+  setMutation(): IUserResolver;
+  getAll();
+}

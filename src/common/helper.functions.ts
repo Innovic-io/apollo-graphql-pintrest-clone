@@ -1,21 +1,20 @@
 import { Collection, ObjectID } from 'mongodb';
 
 import { SERVICE_ENUM, USERS_ELEMENT, WRONG_ID_FORMAT_ERROR, WRONG_USERNAME_AND_PASSWORD } from './common.constants';
-import { IUser, IUserService } from '../graphql/user/user.interface';
+import { IUser, IUserResolver, IUserService } from '../graphql/user/user.interface';
 import { comparePasswords, generateToken } from './cryptography';
 import { getDataOnFly } from '../typeDefs';
 import { makeExecutableSchema } from 'graphql-tools';
 import { IAuthorization } from '../authorization/authorization.interface';
 import { graphqlExpress } from 'apollo-server-express';
-import scalarResolverFunctions from '../graphql/scalars/scalars.resolver';
-import pinResolver from '../graphql/pins/pin.resolver';
-import boardResolver from '../graphql/boards/board.resolver';
-import userResolver from '../graphql/user/user.resolver';
 import { rootContainer } from '../inversify/inversify.config';
-import { TYPES } from '../inversify/inversify.types';
+import { RESOLVER_TYPES, SERVICE_TYPES } from '../inversify/inversify.types';
 import { IDatabaseService } from '../database/interfaces/database.interface';
+import { IBoardResolver } from '../graphql/boards/board.interface';
+import { IScalarsResolver } from '../graphql/scalars/scalars.interface';
+import { IPinResolver } from '../graphql/pins/pin.interface';
 
-const userService = rootContainer.get<IUserService>(TYPES.UserService);
+const userService = rootContainer.get<IUserService>(SERVICE_TYPES.UserService);
 
 /**
  * Make Object ID from id provided
@@ -57,7 +56,7 @@ export const findByElementKey = async <Service> (sentDatabase: Collection, eleme
 export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
 
   const db = await rootContainer
-    .get<IDatabaseService>(TYPES.DatabaseService)
+    .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
     .getDB();
 
   return await db.collection(serviceName)
@@ -111,8 +110,14 @@ export const changeSchema = async (passedTypes?) => {
   const typeDefs = passedTypes || await getDataOnFly(readFromDatabase);
   readFromDatabase = !readFromDatabase;
 
+// , boardResolver, scalarResolverFunctions, pinResolver
   const schema = makeExecutableSchema({
-    resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
+    resolvers: [
+      rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
+      rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
+      rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
+      rootContainer.get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
+    ],
     typeDefs,
   });
 

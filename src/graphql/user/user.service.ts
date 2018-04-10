@@ -9,7 +9,7 @@ import { createObjectID, findByElementKey, getServiceById, makeToken } from '../
 import { ALREADY_EXIST_ERROR, DOES_NOT_EXIST, SERVICE_ENUM, USERS_ELEMENT } from '../../common/common.constants';
 import { hashPassword, IHashedPassword } from '../../common/cryptography';
 import { IDatabaseService } from '../../database/interfaces/database.interface';
-import { TYPES } from '../../inversify/inversify.types';
+import { SERVICE_TYPES } from '../../inversify/inversify.types';
 
 /**
  * Service to control data of Board type
@@ -21,7 +21,7 @@ export default class UserService implements IUserService {
   database: Collection;
 
   constructor(
-    @inject(TYPES.DatabaseService) injectedDatabase: IDatabaseService,
+    @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService,
   ) {
 
     injectedDatabase.getDB()

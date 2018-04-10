@@ -1,9 +1,22 @@
 import DateType from './date.scalar';
 import ImageScalarType from './image.scalar';
+import { injectable } from 'inversify';
+import { IScalarsResolver } from './scalars.interface';
 
-const scalarResolverFunctions = {
-  Date: DateType,
-  ImageScalar: ImageScalarType,
-};
+@injectable()
+export default class ScalarsResolver implements IScalarsResolver {
+  private readonly Date;
+  private readonly ImageScalar;
 
-export default scalarResolverFunctions;
+  constructor() {
+    this.Date = DateType;
+    this.ImageScalar = ImageScalarType
+  }
+
+  getAll() {
+    return {
+      Date: this.Date,
+      ImageScalar: this.ImageScalar,
+    }
+  }
+}

@@ -8,7 +8,7 @@ import {
 import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, PERMISSION_DENIED, SERVICE_ENUM } from '../../common/common.constants';
 import { IPin, IPinService } from './pin.interface';
 import { USERS_ELEMENT } from '../../common/common.constants';
-import { TYPES } from '../../inversify/inversify.types';
+import { SERVICE_TYPES } from '../../inversify/inversify.types';
 import { IDatabaseService } from '../../database/interfaces/database.interface';
 
 /**
@@ -21,7 +21,7 @@ export default class PinService implements IPinService {
   private database: Collection;
 
   constructor(
-    @inject(TYPES.DatabaseService) injectedDatabase: IDatabaseService,
+    @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService,
   ) {
 
     injectedDatabase.getDB()

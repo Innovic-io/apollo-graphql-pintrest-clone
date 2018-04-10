@@ -1,74 +1,107 @@
+import { inject, injectable } from 'inversify';
+
 import { IAuthorization } from '../../authorization/authorization.interface';
-import { IBoard, IBoardService } from './board.interface';
+import { IBoard, IBoardResolver, IBoardService } from './board.interface';
 import { getServiceById } from '../../common/helper.functions';
 import { SERVICE_ENUM } from '../../common/common.constants';
-import { rootContainer } from '../../inversify/inversify.config';
-import { TYPES } from '../../inversify/inversify.types';
+import { SERVICE_TYPES } from '../../inversify/inversify.types';
 
-const boardService = rootContainer.get<IBoardService>(TYPES.BoardService);
+let boardService;
 
-const boardResolver = {
-  Query: {
-    async getBoard(parent, { _id }) {
-      return await boardService.getByID(_id);
-    },
+@injectable()
+export default class BoardResolver implements IBoardResolver {
+  private Query;
+  private Mutation;
+  private Board;
 
-    async getBoardFollowing(parent, args, context: IAuthorization) {
+  constructor(
+    @inject(SERVICE_TYPES.BoardService) injectedBoardService: IBoardService
+  ) {
 
-      return await boardService.getBoardFollowing(context._id);
-    },
-    async getUserBoards(parent, args, context: IAuthorization) {
+    this.setQuery();
+    this.setMutation();
+    this.setBoard();
 
-      return await boardService.getCreators(context._id);
-    },
-  },
-  Mutation: {
-    async createBoard(parent, args, context: IAuthorization) {
-      return await boardService.createBoard(args, context._id);
-    },
+    boardService = injectedBoardService;
+  }
 
-    async updateBoard(parent, args, context: IAuthorization) {
-      return await boardService.updateBoard(args, context._id);
-    },
+  setQuery() {
+    this.Query = {
+      async getBoard(parent, { _id }) {
+        return await boardService.getByID(_id);
+      },
 
-    async deleteBoard(parent, {_id}, context: IAuthorization ) {
-      return await boardService.deleteBoard(_id, context._id);
-    },
+      async getBoardFollowing(parent, args, context: IAuthorization) {
 
-    async followBoard(parent, {_id}, context: IAuthorization) {
-      return await boardService.startFollowingBoard(_id, context._id);
-    },
+        return await boardService.getBoardFollowing(context._id);
+      },
+      async getUserBoards(parent, args, context: IAuthorization) {
 
-    async stopFollowingBoard(parent, {_id}, context: IAuthorization) {
-      return await boardService.stopFollowingBoard(_id, context._id);
-    },
-  },
+        return await boardService.getCreators(context._id);
+      },
+    };
+    return this;
+  }
 
-  Board: {
+  setMutation() {
+    this.Mutation = {
+      async createBoard(parent, args, context: IAuthorization) {
+        return await boardService.createBoard(args, context._id);
+      },
 
-    async followers(boards: IBoard) {
+      async updateBoard(parent, args, context: IAuthorization) {
+        return await boardService.updateBoard(args, context._id);
+      },
 
-      if (!boards.followers) {
-        return null;
-      }
+      async deleteBoard(parent, { _id }, context: IAuthorization) {
+        return await boardService.deleteBoard(_id, context._id);
+      },
 
-      return await boardService.getUsers(boards._id, boards.followers);
-    },
+      async followBoard(parent, { _id }, context: IAuthorization) {
+        return await boardService.startFollowingBoard(_id, context._id);
+      },
 
-    async creator(boards: IBoard) {
+      async stopFollowingBoard(parent, { _id }, context: IAuthorization) {
+        return await boardService.stopFollowingBoard(_id, context._id);
+      },
+    };
+    return this;
+  }
 
-      return await getServiceById(boards.creator, SERVICE_ENUM.USERS);
-    },
+  setBoard() {
+    this.Board = {
 
-    async collaborators(boards: IBoard) {
+      async followers(boards: IBoard) {
 
-      if (!boards.collaborators) {
-        return null;
-      }
+        if (!boards.followers) {
+          return null;
+        }
 
-      return await boardService.getUsers(boards._id, boards.collaborators);
-    },
-  },
-};
+        return await boardService.getUsers(boards._id, boards.followers);
+      },
 
-export default boardResolver;
+      async creator(boards: IBoard) {
+
+        return await getServiceById(boards.creator, SERVICE_ENUM.USERS);
+      },
+
+      async collaborators(boards: IBoard) {
+
+        if (!boards.collaborators) {
+          return null;
+        }
+
+        return await boardService.getUsers(boards._id, boards.collaborators);
+      },
+    };
+    return this;
+  }
+
+  getAll() {
+    return {
+      Query: this.Query,
+      Mutation: this.Mutation,
+      Board: this.Board,
+    };
+  }
+}

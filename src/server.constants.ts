@@ -1,4 +1,7 @@
 import { DynamicMiddleware } from './common/dynamic.middleware';
+import { config } from 'dotenv';
+
+config();
 
 export const PORT = process.env.PORT;
 export const API_VERSION = process.env.API_VERSION;
