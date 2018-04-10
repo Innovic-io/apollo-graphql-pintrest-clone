@@ -2,22 +2,25 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as request from 'supertest';
 import { graphqlExpress } from 'apollo-server-express';
+import 'jest';
 
 import { API_ENDPOINT } from '../../src/server.constants';
 import { IAuthorization } from '../../src/authorization/authorization.interface';
 import AuthorizationMiddleware from '../../src/authorization/authorization.middleware';
 import { makeExecutableSchema } from 'graphql-tools';
-import pinResolver from '../../src/graphql/pins/pin.resolver';
-import { decodeToken } from '../../src/graphql/common/cryptography';
-import boardResolver from '../../src/graphql/boards/board.resolver';
+import { decodeToken } from '../../src/common/cryptography';
 import { getDataOnFly } from '../../src/typeDefs';
+import boardResolver from '../../src/graphql/boards/board.resolver';
+import pinResolver from '../../src/graphql/pins/pin.resolver';
 import scalarResolverFunctions from '../../src/graphql/scalars/scalars.resolver';
 import userResolver from '../../src/graphql/user/user.resolver';
-import { DatabaseService } from '../../src/graphql/common/database.service';
-import { makeString } from '../../src/graphql/common/helper.functions';
-import IUser from '../../src/graphql/user/user.interface';
-import IPin from '../../src/graphql/pins/pin.interface';
-import IBoard from '../../src/graphql/boards/board.interface';
+import { makeString } from '../../src/common/helper.functions';
+import { IUser } from '../../src/graphql/user/user.interface';
+import { IPin } from '../../src/graphql/pins/pin.interface';
+import { IBoard } from '../../src/graphql/boards/board.interface';
+import { rootContainer } from '../../src/inversify/inversify.config';
+import { TYPES } from '../../src/inversify/inversify.types';
+import { IDatabaseService } from '../../src/database/interfaces/database.interface';
 
 jest.setTimeout(100000);
 
@@ -56,7 +59,10 @@ describe('Pinterest ', () => {
       })),
     );
 
-    const db = await DatabaseService.getDB();
+    const db = await rootContainer
+      .get<IDatabaseService>(TYPES.DatabaseService)
+      .getDB();
+
       db.dropDatabase();
     }
   );

@@ -1,24 +1,21 @@
 import { Collection, ObjectID } from 'mongodb';
 
 import { SERVICE_ENUM, USERS_ELEMENT, WRONG_ID_FORMAT_ERROR, WRONG_USERNAME_AND_PASSWORD } from './common.constants';
-import UserService from '../user/user.service';
-import IUser from '../user/user.interface';
-import { DatabaseService } from './database.service';
+import { IUser, IUserService } from '../graphql/user/user.interface';
 import { comparePasswords, generateToken } from './cryptography';
-import { getDataOnFly } from '../../typeDefs';
+import { getDataOnFly } from '../typeDefs';
 import { makeExecutableSchema } from 'graphql-tools';
-import { IAuthorization } from '../../authorization/authorization.interface';
+import { IAuthorization } from '../authorization/authorization.interface';
 import { graphqlExpress } from 'apollo-server-express';
-import scalarResolverFunctions from '../scalars/scalars.resolver';
-import pinResolver from '../pins/pin.resolver';
-import boardResolver from '../boards/board.resolver';
-import userResolver from '../user/user.resolver';
+import scalarResolverFunctions from '../graphql/scalars/scalars.resolver';
+import pinResolver from '../graphql/pins/pin.resolver';
+import boardResolver from '../graphql/boards/board.resolver';
+import userResolver from '../graphql/user/user.resolver';
+import { rootContainer } from '../inversify/inversify.config';
+import { TYPES } from '../inversify/inversify.types';
+import { IDatabaseService } from '../database/interfaces/database.interface';
 
-let database;
-
-DatabaseService
-  .getDB()
-  .then((value) => database = value);
+const userService = rootContainer.get<IUserService>(TYPES.UserService);
 
 /**
  * Make Object ID from id provided
@@ -59,7 +56,10 @@ export const findByElementKey = async <Service> (sentDatabase: Collection, eleme
  */
 export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
 
-  const db = await DatabaseService.getDB();
+  const db = await rootContainer
+    .get<IDatabaseService>(TYPES.DatabaseService)
+    .getDB();
+
   return await db.collection(serviceName)
     .findOne<T>({ _id });
 };
@@ -74,8 +74,6 @@ export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENU
  */
 export const addCreator = async (creatorID: ObjectID, value: ObjectID, type: USERS_ELEMENT): Promise<IUser> => {
 
-  const userService = await new UserService();
-
   return await userService.addToSet(creatorID, value, type);
 };
 
@@ -88,8 +86,6 @@ export const addCreator = async (creatorID: ObjectID, value: ObjectID, type: USE
  * @returns {Promise<IUser>}
  */
 export const removeCreator = async (userID: ObjectID, valueToRemove: ObjectID, arrayName: USERS_ELEMENT): Promise<IUser> => {
-
-  const userService = await new UserService();
 
   return await userService.removeFromSet(userID, valueToRemove, arrayName);
 };

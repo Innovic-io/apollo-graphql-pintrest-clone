@@ -35,11 +35,13 @@
     "@types/socket.io": "^1.4.32",
     "jest": "^22.4.0",
     "nodemon": "^1.15.0",
+    "reflect-metadata": "^0.1.12",
     "supertest": "latest",
     "ts-jest": "^21.2.4",
     "ts-node": "^5.0.0",
     "tslint": "~5.7.0",
-    "typescript": "2.4.2"
+    "typescript": "2.4.2",
+    "inversify": "latest"
   },
   "jest": {
     "transform": {

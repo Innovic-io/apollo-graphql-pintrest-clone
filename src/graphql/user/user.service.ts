@@ -1,23 +1,31 @@
 import { Observable } from 'rxjs/Observable';
 import { Collection, ObjectID } from 'mongodb';
+import { inject, injectable } from 'inversify';
 import 'rxjs/add/observable/forkJoin';
+import 'reflect-metadata';
 
-import IUser from './user.interface';
-import { createObjectID, findByElementKey, getServiceById, makeToken } from '../common/helper.functions';
-import { ALREADY_EXIST_ERROR, DOES_NOT_EXIST, SERVICE_ENUM, USERS_ELEMENT } from '../common/common.constants';
-import { DatabaseService } from '../common/database.service';
-import { hashPassword, IHashedPassword } from '../common/cryptography';
+import { IUser, IUserService } from './user.interface';
+import { createObjectID, findByElementKey, getServiceById, makeToken } from '../../common/helper.functions';
+import { ALREADY_EXIST_ERROR, DOES_NOT_EXIST, SERVICE_ENUM, USERS_ELEMENT } from '../../common/common.constants';
+import { hashPassword, IHashedPassword } from '../../common/cryptography';
+import { IDatabaseService } from '../../database/interfaces/database.interface';
+import { TYPES } from '../../inversify/inversify.types';
 
 /**
  * Service to control data of Board type
  */
-export default class UserService {
+@injectable()
+export default class UserService implements IUserService {
 
   private collectionName =  SERVICE_ENUM.USERS;
   database: Collection;
 
-  constructor() {
-    DatabaseService.getDB().then((value) => this.database = value.collection(this.collectionName));
+  constructor(
+    @inject(TYPES.DatabaseService) injectedDatabase: IDatabaseService,
+  ) {
+
+    injectedDatabase.getDB()
+      .then((value) => this.database = value.collection(this.collectionName) );
   }
 
   async getByID(userID: string | ObjectID): Promise<IUser> {
@@ -92,7 +100,7 @@ export default class UserService {
 
   }
 
-  async startFollowingUser(_id: string, followerID: ObjectID) {
+  async startFollowingUser(_id: string, followerID: ObjectID): Promise<IUser> {
 
     const followee = await this.getByID(createObjectID(_id));
 
@@ -164,7 +172,7 @@ export default class UserService {
 
   async getAll() {
 
-    const result = await this.database.find({});
+    const result = await this.database.find<IUser>({});
     return result.toArray();
   }
 

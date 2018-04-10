@@ -7,7 +7,7 @@ import { Server } from 'http';
 
 import { API_ENDPOINT, GRAPHQL_MIDDLEWARE, PORT } from './server.constants';
 import AuthorizationMiddleware from './authorization/authorization.middleware';
-import { changeSchema } from './graphql/common/helper.functions';
+import { changeSchema } from './common/helper.functions';
 
 export let socket: socketIo.Server;
 

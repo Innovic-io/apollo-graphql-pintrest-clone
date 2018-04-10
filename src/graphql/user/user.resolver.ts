@@ -1,10 +1,11 @@
-import UserService from './user.service';
-import IUser from './user.interface';
+import { IUser, IUserService } from './user.interface';
 import { IAuthorization } from '../../authorization/authorization.interface';
-import { USERS_ELEMENT } from '../common/common.constants';
+import { USERS_ELEMENT } from '../../common/common.constants';
 import { pubsub, USER_CHANGED_TOPIC } from '../subscription/subscription.resolver';
+import { rootContainer } from '../../inversify/inversify.config';
+import { TYPES } from '../../inversify/inversify.types';
 
-const userService = new UserService();
+const userService = rootContainer.get<IUserService>(TYPES.UserService);
 
 // if something need to be verified, in context field is
 // results of authorization.middleware

@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import { decode, sign, verify } from 'jsonwebtoken';
-import { privateKey } from '../../server.constants';
+import { privateKey } from '../server.constants';
 
 interface ITokenConfig {
   secret: string;

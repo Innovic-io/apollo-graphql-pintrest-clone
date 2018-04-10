@@ -1,10 +1,11 @@
-import BoardService from './board.service';
 import { IAuthorization } from '../../authorization/authorization.interface';
-import IBoard from './board.interface';
-import { getServiceById } from '../common/helper.functions';
-import { SERVICE_ENUM } from '../common/common.constants';
+import { IBoard, IBoardService } from './board.interface';
+import { getServiceById } from '../../common/helper.functions';
+import { SERVICE_ENUM } from '../../common/common.constants';
+import { rootContainer } from '../../inversify/inversify.config';
+import { TYPES } from '../../inversify/inversify.types';
 
-const boardService = new BoardService();
+const boardService = rootContainer.get<IBoardService>(TYPES.BoardService);
 
 const boardResolver = {
   Query: {

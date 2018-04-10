@@ -1,11 +1,12 @@
-import PinService from './pin.service';
 import { IAuthorization } from '../../authorization/authorization.interface';
-import { getServiceById } from '../common/helper.functions';
-import { SERVICE_ENUM } from '../common/common.constants';
-import IPin from './pin.interface';
+import { getServiceById } from '../../common/helper.functions';
+import { SERVICE_ENUM } from '../../common/common.constants';
+import { IPin, IPinService } from './pin.interface';
 import { PIN_CHANGED_TOPIC, pubsub } from '../subscription/subscription.resolver';
+import { rootContainer } from '../../inversify/inversify.config';
+import { TYPES } from '../../inversify/inversify.types';
 
-const pinService = new PinService();
+const pinService = rootContainer.get<IPinService>(TYPES.PinService);
 
 // if something need to be verified, Authorization is stored in context
 
