@@ -1,23 +1,23 @@
 import * as glob from 'glob';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { createFromDB } from 'mongodb-to-graphql2';
+import { createFromDB } from 'm2gql';
 import { BSON } from 'bson';
 
 import { DATABASE_URI } from './server.constants';
 
 const graphqls = glob.sync(join('./**/*.graphql'));
 
-export async function getDataOnFly(readFromDatabase: boolean) {
+export async function getDataOnFly(companyID?: string) {
   let data;
 
-  if (!readFromDatabase) {
+  if (!companyID) {
 
     data = await getLoadedData();
 
   } else {
 
-    data = await createFromDB(DATABASE_URI);
+    data = await createFromDB(DATABASE_URI, '', '', companyID);
 
   }
   return graphqls

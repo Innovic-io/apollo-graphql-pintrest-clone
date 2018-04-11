@@ -1,12 +1,12 @@
 import { Collection, ObjectID } from 'mongodb';
+import { graphqlExpress } from 'apollo-server-express';
+import { makeExecutableSchema } from 'graphql-tools';
 
 import { SERVICE_ENUM, USERS_ELEMENT, WRONG_ID_FORMAT_ERROR, WRONG_USERNAME_AND_PASSWORD } from './common.constants';
 import { IUser, IUserResolver, IUserService } from '../graphql/user/user.interface';
 import { comparePasswords, generateToken } from './cryptography';
 import { getDataOnFly } from '../typeDefs';
-import { makeExecutableSchema } from 'graphql-tools';
 import { IAuthorization } from '../authorization/authorization.interface';
-import { graphqlExpress } from 'apollo-server-express';
 import { rootContainer } from '../inversify/inversify.config';
 import { RESOLVER_TYPES, SERVICE_TYPES } from '../inversify/inversify.types';
 import { IDatabaseService } from '../database/interfaces/database.interface';
@@ -105,12 +105,9 @@ export const makeToken = async (user: IUser, password: string): Promise<string> 
   return await generateToken({ _id: user._id });
 };
 
-let readFromDatabase = false;
-export const changeSchema = async (passedTypes?) => {
-  const typeDefs = passedTypes || await getDataOnFly(readFromDatabase);
-  readFromDatabase = !readFromDatabase;
+export const changeSchema = async (companyID?) => {
+  const typeDefs = await getDataOnFly(companyID);
 
-// , boardResolver, scalarResolverFunctions, pinResolver
   const schema = makeExecutableSchema({
     resolvers: [
       rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),

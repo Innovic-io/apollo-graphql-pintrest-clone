@@ -7,7 +7,7 @@
     "test": "jest",
     "compile": "tsc",
     "start:prod": "node ./dist/src/server.js",
-    "script": "mn2gql -d mongodb://localhost:25555/PinterestDB -s pinterest"
+    "script": "m2gql -d mongodb://localhost:25555/PinterestDB -s pinterest"
   },
   "dependencies": {
     "apollo-server-express": "^1.3.2",
@@ -18,8 +18,8 @@
     "graphql-tag": "^2.7.3",
     "graphql-tools": "^2.21.0",
     "jsonwebtoken": "^8.1.1",
+    "m2gql": "^0.0.1",
     "mongodb": "^3.0.2",
-    "mongodb-to-graphql2": "0.0.29",
     "multer": "^1.3.0",
     "request-promise": "latest",
     "rxjs": "latest",

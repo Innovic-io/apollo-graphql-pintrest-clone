@@ -1,29 +1,34 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as request from 'supertest';
-import { graphqlExpress } from 'apollo-server-express';
 import 'jest';
 
-import { API_ENDPOINT } from '../../src/server.constants';
+import { API_ENDPOINT, GRAPHQL_MIDDLEWARE } from '../../src/server.constants';
 import { IAuthorization } from '../../src/authorization/authorization.interface';
 import AuthorizationMiddleware from '../../src/authorization/authorization.middleware';
-import { makeExecutableSchema } from 'graphql-tools';
 import { decodeToken } from '../../src/common/cryptography';
-import { getDataOnFly } from '../../src/typeDefs';
-import { makeString } from '../../src/common/helper.functions';
-import { IUser, IUserResolver } from '../../src/graphql/user/user.interface';
-import { IPin, IPinResolver } from '../../src/graphql/pins/pin.interface';
-import { IBoard, IBoardResolver } from '../../src/graphql/boards/board.interface';
+import { changeSchema, makeString } from '../../src/common/helper.functions';
+import { IUser } from '../../src/graphql/user/user.interface';
+import { IPin } from '../../src/graphql/pins/pin.interface';
+import { IBoard } from '../../src/graphql/boards/board.interface';
 import { rootContainer } from '../../src/inversify/inversify.config';
-import { RESOLVER_TYPES, SERVICE_TYPES } from '../../src/inversify/inversify.types';
+import { SERVICE_TYPES } from '../../src/inversify/inversify.types';
 import { IDatabaseService } from '../../src/database/interfaces/database.interface';
-import { IScalarsResolver } from '../../src/graphql/scalars/scalars.interface';
 
-jest.setTimeout(100000);
+jest.setTimeout(5000);
 
 describe('Pinterest ', () => {
 
-  const server = express();
+  let db;
+
+  const server = express()
+    .use(bodyParser.json(),
+      (req, res, next) => next()
+    )
+    .post(API_ENDPOINT,
+      AuthorizationMiddleware,
+      GRAPHQL_MIDDLEWARE.handler(),
+    );
 
   let token;
   let boardID;
@@ -38,36 +43,20 @@ describe('Pinterest ', () => {
   let header = { authorization: '' };
   // @ts-ignore
   beforeAll(async () => {
+    const resultingSchema = await changeSchema();
+    GRAPHQL_MIDDLEWARE.replace(resultingSchema.middleware);
 
-    const schema = makeExecutableSchema({
-      resolvers: [
-        rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
-        rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
-        rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
-        rootContainer.get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
-      ],
-      typeDefs: await getDataOnFly(false),
-    });
-
-    server.use(bodyParser.json(),
-      (req, res, next) => next());
-
-    server.post(API_ENDPOINT,
-      AuthorizationMiddleware,
-      graphqlExpress((req) => Object.assign({
-        schema,
-        // tslint:disable-next-line
-        context: req[ 'user' ] as IAuthorization,
-      })),
-    );
-
-    const db = await rootContainer
+    db = await rootContainer
       .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
       .getDB();
 
-      db.dropDatabase();
     }
   );
+
+  afterAll(() => {
+
+    db.dropDatabase();
+  });
 
   it('should create User', async () => {
     const command = 'createUser';
