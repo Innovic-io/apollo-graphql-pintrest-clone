@@ -1,84 +1,123 @@
-import UserService from './user.service';
-import IUser from './user.interface';
-import { IAuthorization } from '../../authorization/authorization.interface';
-import { USERS_ELEMENT } from '../common/common.constants';
-import { pubsub, USER_CHANGED_TOPIC } from '../subscription/subscription.resolver';
+import { inject, injectable } from 'inversify';
 
-const userService = new UserService();
+import { IUser, IUserResolver, IUserService } from './user.interface';
+import { IAuthorization } from '../../authorization/authorization.interface';
+import { USERS_ELEMENT } from '../../common/common.constants';
+import { pubsub, USER_CHANGED_TOPIC } from '../subscription/subscription.resolver';
+import { SERVICE_TYPES } from '../../inversify/inversify.types';
 
 // if something need to be verified, in context field is
 // results of authorization.middleware
+let userService;
 
-const userResolver = {
-  Query: {
+@injectable()
+export default class UserResolver implements IUserResolver {
+  private Query;
+  private Mutation;
+  private User;
+  private Subscription;
 
-    async getAllUsers() {
-      const allUsers = await userService.getAll();
-      const [ single ] = allUsers;
-      pubsub.publish(USER_CHANGED_TOPIC, { userChanged: single.username });
+  constructor(
+    @inject(SERVICE_TYPES.UserService) injectedUserService: IUserService,
+  ) {
+    this.setQuery();
+    this.setMutation();
+    this.setSubscriptions();
+    this.setUser();
+    userService = injectedUserService;
+  }
 
-      return await userService.getAll();
-    },
+  setQuery() {
+    this.Query = {
+      async getAllUsers() {
 
-    async getUser(parent, { }, context: IAuthorization) {
+        const allUsers = await userService.getAll();
+        const [ single ] = allUsers;
+        pubsub.publish(USER_CHANGED_TOPIC, { userChanged: single.username });
 
-      return await userService.getByID(context._id);
-    },
+        return await userService.getAll();
+      },
 
-    async getUserFollowings(parent, {}, context: IAuthorization) {
+      async getUser(parent, {}, context: IAuthorization) {
 
-      return await userService.getFollowing(context._id, USERS_ELEMENT.FOLLOWING);
-    },
+        return await userService.getByID(context._id);
+      },
 
-    async getUserFollowers(parent, {}, context: IAuthorization) {
+      async getUserFollowings(parent, {}, context: IAuthorization) {
 
-      return await userService.getFollowers(context._id);
-    },
-  },
+        return await userService.getFollowing(context._id, USERS_ELEMENT.FOLLOWING);
+      },
 
-  Mutation: {
+      async getUserFollowers(parent, {}, context: IAuthorization) {
 
-    async loginUser(parent, { username, password }) {
+        return await userService.getFollowers(context._id);
+      },
+    };
 
-      return await userService.login(username, password);
-    },
+    return this;
+  }
 
-    async createUser(parent, args: IUser) {
+  setMutation() {
+    this.Mutation = {
+      async loginUser(parent, { username, password }) {
 
-      return await userService.createUser(args);
-    },
+        return await userService.login(username, password);
+      },
 
-    async followUser(parent, { _id }, context: IAuthorization) {
+      async createUser(parent, args: IUser) {
 
-      return await userService.startFollowingUser(_id, context._id);
-    },
+        return await userService.createUser(args);
+      },
 
-    async stopFollowingUser(parent, {_id }, context: IAuthorization) {
+      async followUser(parent, { _id }, context: IAuthorization) {
 
-      return await userService.removeFromSet(_id, context._id, USERS_ELEMENT.FOLLOWING);
-    },
-  },
+        return await userService.startFollowingUser(_id, context._id);
+      },
 
-  User: {
+      async stopFollowingUser(parent, {_id }, context: IAuthorization) {
 
-    async following(users: IUser) {
+        return await userService.removeFromSet(_id, context._id, USERS_ELEMENT.FOLLOWING);
+      },
+    };
 
-      return await userService.getFollowing(users._id, USERS_ELEMENT.FOLLOWING);
-    },
+    return this;
+  }
 
-    async pins(users: IUser) {
+  setUser() {
+    this.User = {
+      async following(users: IUser) {
 
-      return await userService.getFollowing(users._id, USERS_ELEMENT.PINS);
-    },
+        return await userService.getFollowing(users._id, USERS_ELEMENT.FOLLOWING);
+      },
 
-    async boards(users: IUser) {
+      async pins(users: IUser) {
 
-      return await userService.getFollowing(users._id, USERS_ELEMENT.BOARDS);
-    },
-  },
+        return await userService.getFollowing(users._id, USERS_ELEMENT.PINS);
+      },
 
-  Subscription: {
-    userChanged: { subscribe: () => pubsub.asyncIterator(USER_CHANGED_TOPIC) },
-  },
-};
-export default userResolver;
+      async boards(users: IUser) {
+
+        return await userService.getFollowing(users._id, USERS_ELEMENT.BOARDS);
+      },
+    };
+
+    return this;
+  }
+
+  setSubscriptions() {
+    this.Subscription = {
+      userChanged: { subscribe: () => pubsub.asyncIterator(USER_CHANGED_TOPIC) },
+    };
+
+    return this;
+  }
+
+  getAll() {
+    return {
+      Query: this.Query,
+      Mutation: this.Mutation,
+      User: this.User,
+      Subscription: this.Subscription,
+    };
+  }
+}

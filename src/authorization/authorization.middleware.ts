@@ -1,6 +1,6 @@
-import { createObjectID } from '../graphql/common/helper.functions';
+import { createObjectID } from '../common/helper.functions';
 import { privateKey } from '../server.constants';
-import { verifyToken } from '../graphql/common/cryptography';
+import { verifyToken } from '../common/cryptography';
 import { IAuthorization } from './authorization.interface';
 
 const AuthorizationMiddleware = async (req, res, next) => {

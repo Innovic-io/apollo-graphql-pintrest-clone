@@ -1,35 +1,33 @@
 import { Collection, ObjectID } from 'mongodb';
 import { Observable } from 'rxjs/Observable';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
 
-import { DatabaseService } from '../common/database.service';
-import IBoard from './board.interface';
+import { IBoard, IBoardService } from './board.interface';
 import {
-  addCreator,
-  createObjectID,
-  findByElementKey,
-  getServiceById,
-  removeCreator,
-} from '../common/helper.functions';
+  addCreator, createObjectID, findByElementKey, getServiceById, removeCreator,
+} from '../../common/helper.functions';
 import {
-  ALREADY_EXIST_ERROR,
-  DOES_NOT_EXIST,
-  PERMISSION_DENIED,
-  SERVICE_ENUM,
-  USERS_ELEMENT,
-} from '../common/common.constants';
-import IUser from '../user/user.interface';
+  ALREADY_EXIST_ERROR, DOES_NOT_EXIST, PERMISSION_DENIED, SERVICE_ENUM, USERS_ELEMENT,
+} from '../../common/common.constants';
+import { IUser } from '../user/user.interface';
+import { IDatabaseService } from '../../database/interfaces/database.interface';
+import { SERVICE_TYPES } from '../../inversify/inversify.types';
 
 /**
  * Service to control data of Board type and Board collection
  */
-export default class BoardService {
+@injectable()
+export default class BoardService implements IBoardService {
 
   private collectionName = SERVICE_ENUM.BOARDS;
   private database: Collection;
 
-  constructor() {
+  constructor(
+    @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService,
+  ) {
 
-    DatabaseService.getDB()
+      injectedDatabase.getDB()
       .then((value) => {
         this.database = value.collection(this.collectionName);
       });
@@ -69,7 +67,7 @@ export default class BoardService {
     return result.toArray();
   }
 
-  async stopFollowingBoard(_id: string | ObjectID, creatorID: ObjectID) {
+  async stopFollowingBoard(_id: string | ObjectID, creatorID: ObjectID): Promise<IBoard> {
 
     const result = await this.database.findOneAndUpdate({_id: createObjectID(_id)},
       { $pull: { followers: {$in: [creatorID] } } },
@@ -78,7 +76,7 @@ export default class BoardService {
     return result.value;
   }
 
-  async createBoard(newBoard: IBoard, creatorID: ObjectID | string) {
+  async createBoard(newBoard: IBoard, creatorID: ObjectID | string): Promise<IBoard> {
 
     creatorID = createObjectID(creatorID);
 

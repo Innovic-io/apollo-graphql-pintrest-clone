@@ -1,29 +1,34 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as request from 'supertest';
-import { graphqlExpress } from 'apollo-server-express';
+import 'jest';
 
-import { API_ENDPOINT } from '../../src/server.constants';
+import { API_ENDPOINT, FULL_PINTEREST, GRAPHQL_MIDDLEWARE } from '../../src/server.constants';
 import { IAuthorization } from '../../src/authorization/authorization.interface';
 import AuthorizationMiddleware from '../../src/authorization/authorization.middleware';
-import { makeExecutableSchema } from 'graphql-tools';
-import pinResolver from '../../src/graphql/pins/pin.resolver';
-import { decodeToken } from '../../src/graphql/common/cryptography';
-import boardResolver from '../../src/graphql/boards/board.resolver';
-import { getDataOnFly } from '../../src/typeDefs';
-import scalarResolverFunctions from '../../src/graphql/scalars/scalars.resolver';
-import userResolver from '../../src/graphql/user/user.resolver';
-import { DatabaseService } from '../../src/graphql/common/database.service';
-import { makeString } from '../../src/graphql/common/helper.functions';
-import IUser from '../../src/graphql/user/user.interface';
-import IPin from '../../src/graphql/pins/pin.interface';
-import IBoard from '../../src/graphql/boards/board.interface';
+import { decodeToken } from '../../src/common/cryptography';
+import { changeSchema, makeString } from '../../src/common/helper.functions';
+import { IUser } from '../../src/graphql/user/user.interface';
+import { IPin } from '../../src/graphql/pins/pin.interface';
+import { IBoard } from '../../src/graphql/boards/board.interface';
+import { rootContainer } from '../../src/inversify/inversify.config';
+import { SERVICE_TYPES } from '../../src/inversify/inversify.types';
+import { IDatabaseService } from '../../src/database/interfaces/database.interface';
 
-jest.setTimeout(100000);
+jest.setTimeout(10000);
 
 describe('Pinterest ', () => {
 
-  const server = express();
+  let db;
+
+  const server = express()
+    .use(bodyParser.json(),
+      (req, res, next) => next()
+    )
+    .post(API_ENDPOINT,
+      AuthorizationMiddleware,
+      GRAPHQL_MIDDLEWARE.handler(),
+    );
 
   let token;
   let boardID;
@@ -35,31 +40,24 @@ describe('Pinterest ', () => {
   const boardObject = { name: 'Unique Name', description: 'Board description' };
   const pinObject = { name: 'Unique name', note: 'Note for this pin' };
 
-  let header = { authorization: '' };
+  let header = { authorization: '', company: FULL_PINTEREST };
   // @ts-ignore
   beforeAll(async () => {
+    const resultingSchema = await changeSchema();
+    GRAPHQL_MIDDLEWARE.replace(resultingSchema);
 
-    const schema = makeExecutableSchema({
-      resolvers: [ pinResolver, userResolver, boardResolver, scalarResolverFunctions ],
-      typeDefs: await getDataOnFly(false),
-    });
+    db = await rootContainer
+      .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
+      .getDB();
 
-    server.use(bodyParser.json(),
-      (req, res, next) => next());
-
-    server.post(API_ENDPOINT,
-      AuthorizationMiddleware,
-      graphqlExpress((req) => Object.assign({
-        schema,
-        // tslint:disable-next-line
-        context: req[ 'user' ] as IAuthorization,
-      })),
-    );
-
-    const db = await DatabaseService.getDB();
-      db.dropDatabase();
+    db.dropDatabase();
     }
   );
+
+  afterAll(() => {
+
+    db.dropDatabase();
+  });
 
   it('should create User', async () => {
     const command = 'createUser';

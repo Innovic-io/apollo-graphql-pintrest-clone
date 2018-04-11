@@ -7,14 +7,14 @@ import { Server } from 'http';
 
 import { API_ENDPOINT, GRAPHQL_MIDDLEWARE, PORT } from './server.constants';
 import AuthorizationMiddleware from './authorization/authorization.middleware';
-import { changeSchema } from './graphql/common/helper.functions';
+import { changeSchema } from './common/helper.functions';
 
 export let socket: socketIo.Server;
 
 async function bootstrap() {
 
   const changedSchema = await changeSchema();
-  GRAPHQL_MIDDLEWARE.replace(changedSchema.middleware);
+  GRAPHQL_MIDDLEWARE.replace(changedSchema);
 
   const app = express();
   const server = new Server(app)
@@ -42,11 +42,6 @@ async function mainFunction() {
   }
 
   await bootstrap();
-
-  setTimeout(() => changeSchema()
-      .then((changedSchema) => GRAPHQL_MIDDLEWARE
-        .replace(changedSchema.middleware)),
-    10000);
 }
 
 mainFunction();

@@ -1,25 +1,30 @@
 import { Collection, ObjectID } from 'mongodb';
+import { inject, injectable } from 'inversify';
+import 'reflect-metadata';
 
 import {
-  addCreator, createObjectID, findByElementKey, getServiceById,
-  removeCreator,
-} from '../common/helper.functions';
-import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, PERMISSION_DENIED, SERVICE_ENUM } from '../common/common.constants';
-import { DatabaseService } from '../common/database.service';
-import IPin from './pin.interface';
-import { USERS_ELEMENT } from '../common/common.constants';
+  addCreator, createObjectID, findByElementKey, getServiceById, removeCreator,
+} from '../../common/helper.functions';
+import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, PERMISSION_DENIED, SERVICE_ENUM } from '../../common/common.constants';
+import { IPin, IPinService } from './pin.interface';
+import { USERS_ELEMENT } from '../../common/common.constants';
+import { SERVICE_TYPES } from '../../inversify/inversify.types';
+import { IDatabaseService } from '../../database/interfaces/database.interface';
 
 /**
  * Service to control data of Pin type and Pin collection
  */
-export default class PinService {
+@injectable()
+export default class PinService implements IPinService {
 
   private collectionName =  SERVICE_ENUM.PINS;
   private database: Collection;
 
-  constructor() {
+  constructor(
+    @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService,
+  ) {
 
-    DatabaseService.getDB()
+    injectedDatabase.getDB()
       .then((value) => this.database = value.collection(this.collectionName) );
   }
 
@@ -42,7 +47,7 @@ export default class PinService {
     return result.toArray();
   }
 
-  async getAllPins() {
+  async getAllPins(): Promise<IPin[]> {
 
     const result = await this.database.find({});
 
@@ -118,7 +123,7 @@ export default class PinService {
     return result.value;
   }
 
-  async deletePin(_id: string | ObjectID, creatorID: ObjectID) {
+  async deletePin(_id: string | ObjectID, creatorID: ObjectID): Promise<IPin> {
 
     await this.checkPinPermission(_id, creatorID);
 

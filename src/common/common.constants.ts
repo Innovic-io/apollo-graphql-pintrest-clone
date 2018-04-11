@@ -6,9 +6,9 @@ export const WRONG_USERNAME_AND_PASSWORD = 'Wrong username or password';
 
 // enum of all available services
 export enum SERVICE_ENUM {
-  USERS = 'users',
-  PINS = 'pins',
-  BOARDS = 'boards',
+  USERS = 'User',
+  PINS = 'Pin',
+  BOARDS = 'Board',
 }
 
 export enum USERS_ELEMENT {

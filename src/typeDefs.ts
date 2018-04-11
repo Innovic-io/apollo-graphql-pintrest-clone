@@ -1,42 +1,32 @@
 import * as glob from 'glob';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join } from 'path';
-import { createFromDB } from 'mongodb-to-graphql2';
-import { BSON } from 'bson';
+import { createFromDB } from 'm2gql';
 
-import { DATABASE_URI } from './server.constants';
+import { DATABASE_URI, DB_NAME, DB_TESTING, FULL_PINTEREST, TEST_DATABASE_URI } from './server.constants';
 
 const graphqls = glob.sync(join('./**/*.graphql'));
 
-export async function getDataOnFly(readFromDatabase: boolean) {
+let fetchedData;
+
+export async function getDataOnFly(companyName?: string) {
+
+  let databaseURI = DATABASE_URI;
   let data;
 
-  if (!readFromDatabase) {
+  if (process.env.NODE_ENV === 'test') {
+    databaseURI = TEST_DATABASE_URI.replace(DB_TESTING, DB_NAME);
 
-    data = await getLoadedData();
-
-  } else {
-
-    data = await createFromDB(DATABASE_URI);
-
+    if (!fetchedData) {
+      companyName = companyName || FULL_PINTEREST;
+      fetchedData = await createFromDB({databaseURI, companyName});
+    }
   }
+
+  data = fetchedData || await createFromDB({databaseURI, companyName});
+
   return graphqls
     .map((item) => readFileSync(item).toString())
     .concat(data)
     .join('');
-}
-
-async function getLoadedData() {
-  const dataFileURL = join(__dirname, 'data.bson');
-
-  if (!existsSync(dataFileURL)) {
-    return await createFromDB(DATABASE_URI)
-      .then((resultingData) => {
-        writeFileSync(dataFileURL, new BSON().serialize(resultingData));
-        return resultingData;
-      });
-  }
-  const BSONResult = new BSON().deserialize(readFileSync(dataFileURL));
-
-  return Object.values(BSONResult).join('');
 }
