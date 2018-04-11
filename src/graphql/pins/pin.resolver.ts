@@ -18,7 +18,7 @@ export default class PinResolver implements IPinResolver {
   private Pin;
 
   constructor(
-    @inject(SERVICE_TYPES.PinService) injectedPinService: IPinService
+    @inject(SERVICE_TYPES.PinService) injectedPinService: IPinService,
   ) {
     this.setQuery();
     this.setMutation();
@@ -95,7 +95,6 @@ export default class PinResolver implements IPinResolver {
     };
     return this;
   }
-
 
   setSubscription() {
     this.Subscription = {

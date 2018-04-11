@@ -18,7 +18,7 @@ export default class UserResolver implements IUserResolver {
   private Subscription;
 
   constructor(
-    @inject(SERVICE_TYPES.UserService) injectedUserService: IUserService
+    @inject(SERVICE_TYPES.UserService) injectedUserService: IUserService,
   ) {
     this.setQuery();
     this.setMutation();

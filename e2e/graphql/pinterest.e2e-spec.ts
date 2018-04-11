@@ -3,7 +3,7 @@ import * as bodyParser from 'body-parser';
 import * as request from 'supertest';
 import 'jest';
 
-import { API_ENDPOINT, GRAPHQL_MIDDLEWARE } from '../../src/server.constants';
+import { API_ENDPOINT, FULL_PINTEREST, GRAPHQL_MIDDLEWARE } from '../../src/server.constants';
 import { IAuthorization } from '../../src/authorization/authorization.interface';
 import AuthorizationMiddleware from '../../src/authorization/authorization.middleware';
 import { decodeToken } from '../../src/common/cryptography';
@@ -15,7 +15,7 @@ import { rootContainer } from '../../src/inversify/inversify.config';
 import { SERVICE_TYPES } from '../../src/inversify/inversify.types';
 import { IDatabaseService } from '../../src/database/interfaces/database.interface';
 
-jest.setTimeout(5000);
+jest.setTimeout(10000);
 
 describe('Pinterest ', () => {
 
@@ -40,16 +40,17 @@ describe('Pinterest ', () => {
   const boardObject = { name: 'Unique Name', description: 'Board description' };
   const pinObject = { name: 'Unique name', note: 'Note for this pin' };
 
-  let header = { authorization: '' };
+  let header = { authorization: '', company: FULL_PINTEREST };
   // @ts-ignore
   beforeAll(async () => {
     const resultingSchema = await changeSchema();
-    GRAPHQL_MIDDLEWARE.replace(resultingSchema.middleware);
+    GRAPHQL_MIDDLEWARE.replace(resultingSchema);
 
     db = await rootContainer
       .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
       .getDB();
 
+    db.dropDatabase();
     }
   );
 

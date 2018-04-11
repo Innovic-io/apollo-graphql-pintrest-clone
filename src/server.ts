@@ -14,7 +14,7 @@ export let socket: socketIo.Server;
 async function bootstrap() {
 
   const changedSchema = await changeSchema();
-  GRAPHQL_MIDDLEWARE.replace(changedSchema.middleware);
+  GRAPHQL_MIDDLEWARE.replace(changedSchema);
 
   const app = express();
   const server = new Server(app)
@@ -42,11 +42,6 @@ async function mainFunction() {
   }
 
   await bootstrap();
-
-  setTimeout(() => changeSchema()
-      .then((changedSchema) => GRAPHQL_MIDDLEWARE
-        .replace(changedSchema.middleware)),
-    10000);
 }
 
 mainFunction();

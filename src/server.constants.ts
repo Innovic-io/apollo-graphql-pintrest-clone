@@ -19,3 +19,5 @@ export const TEST_DATABASE_URI = `mongodb://localhost:${DB_PORT}/${DB_TESTING}`;
 export const privateKey = '?TM!A%ibGacO4->l:Q`YIXh/N!c,45Kh>V1#eg6fbJWAg~sg3Mo):}Gx$uW_|TO';
 
 export const  GRAPHQL_MIDDLEWARE = new DynamicMiddleware();
+
+export const FULL_PINTEREST = 'FULL_PINTEREST';

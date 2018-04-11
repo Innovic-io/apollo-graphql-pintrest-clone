@@ -105,26 +105,30 @@ export const makeToken = async (user: IUser, password: string): Promise<string> 
   return await generateToken({ _id: user._id });
 };
 
-export const changeSchema = async (companyID?) => {
+export const changeSchema = async () => {
+  const resolvers = [
+    rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
+    rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
+    rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
+    rootContainer.get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
+  ];
+  return graphqlExpress(
+    async (req: any) => {
+
+      const schema = await makeSchemaOnFly(req.headers.company, resolvers);
+      return Object.assign({
+        schema,
+        context: req.user as IAuthorization,
+      });
+    },
+  );
+};
+
+const makeSchemaOnFly = async (companyID, resolvers) => {
   const typeDefs = await getDataOnFly(companyID);
 
-  const schema = makeExecutableSchema({
-    resolvers: [
-      rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
-      rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
-      rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
-      rootContainer.get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
-    ],
+  return makeExecutableSchema({
+    resolvers,
     typeDefs,
   });
-
-  return {
-    middleware: graphqlExpress(
-      (req) => Object.assign({
-        schema,
-        // tslint:disable-next-line
-        context: req[ 'user' ] as IAuthorization,
-      })),
-    schema,
-  };
 };

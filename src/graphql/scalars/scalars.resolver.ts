@@ -10,13 +10,13 @@ export default class ScalarsResolver implements IScalarsResolver {
 
   constructor() {
     this.Date = DateType;
-    this.ImageScalar = ImageScalarType
+    this.ImageScalar = ImageScalarType;
   }
 
   getAll() {
     return {
       Date: this.Date,
       ImageScalar: this.ImageScalar,
-    }
+    };
   }
 }

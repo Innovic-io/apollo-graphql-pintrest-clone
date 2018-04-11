@@ -15,7 +15,7 @@ export default class BoardResolver implements IBoardResolver {
   private Board;
 
   constructor(
-    @inject(SERVICE_TYPES.BoardService) injectedBoardService: IBoardService
+    @inject(SERVICE_TYPES.BoardService) injectedBoardService: IBoardService,
   ) {
 
     this.setQuery();
