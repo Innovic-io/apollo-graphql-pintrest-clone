@@ -13,6 +13,7 @@ import { IDatabaseService } from '../database/interfaces/database.interface';
 import { IBoardResolver } from '../graphql/boards/board.interface';
 import { IScalarsResolver } from '../graphql/scalars/scalars.interface';
 import { IPinResolver } from '../graphql/pins/pin.interface';
+import { RESOLVERS } from '../server.constants';
 
 const userService = rootContainer.get<IUserService>(SERVICE_TYPES.UserService);
 
@@ -105,17 +106,23 @@ export const makeToken = async (user: IUser, password: string): Promise<string> 
   return await generateToken({ _id: user._id });
 };
 
+export const initializeResolvers = () => {
+  if(RESOLVERS.length === 0) {
+    RESOLVERS.push(
+      rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
+      rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
+      rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
+      rootContainer.get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
+    );
+  }
+};
+
 export const changeSchema = async () => {
-  const resolvers = [
-    rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
-    rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
-    rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
-    rootContainer.get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
-  ];
+  initializeResolvers();
   return graphqlExpress(
     async (req: any) => {
 
-      const schema = await makeSchemaOnFly(req.headers.company, resolvers);
+      const schema = await makeSchemaOnFly(req.headers.company, RESOLVERS);
       return Object.assign({
         schema,
         context: req.user as IAuthorization,

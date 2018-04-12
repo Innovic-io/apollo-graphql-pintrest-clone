@@ -14,13 +14,11 @@ export async function getDataOnFly(companyName?: string) {
   let databaseURI = DATABASE_URI;
   let data;
 
-  if (process.env.NODE_ENV === 'test') {
-    databaseURI = TEST_DATABASE_URI.replace(DB_TESTING, DB_NAME);
+  if (process.env.NODE_ENV === 'test' && !fetchedData) {
 
-    if (!fetchedData) {
-      companyName = companyName || FULL_PINTEREST;
-      fetchedData = await createFromDB({databaseURI, companyName});
-    }
+    databaseURI = TEST_DATABASE_URI.replace(DB_TESTING, DB_NAME);
+    companyName = companyName || FULL_PINTEREST;
+    fetchedData = await createFromDB({databaseURI, companyName});
   }
 
   data = fetchedData || await createFromDB({databaseURI, companyName});

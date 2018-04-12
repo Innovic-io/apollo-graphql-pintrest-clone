@@ -20,4 +20,6 @@ export const privateKey = '?TM!A%ibGacO4->l:Q`YIXh/N!c,45Kh>V1#eg6fbJWAg~sg3Mo):
 
 export const  GRAPHQL_MIDDLEWARE = new DynamicMiddleware();
 
-export const FULL_PINTEREST = 'FULL_PINTEREST';
+export const FULL_PINTEREST = 'fullPinterest';
+
+export let RESOLVERS = [];

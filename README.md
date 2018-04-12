@@ -1,6 +1,6 @@
 ## Pintrest API clone on Apollo GraphQL with MongoDB
 
-<img height="100" src="https://seeklogo.com/images/T/typescript-logo-B29A3F462D-seeklogo.com.png" /><img src="https://blog.savoirfairelinux.com/fr-ca/wp-content/uploads/2017/10/VQLBJ0TR_200x200.png" height="100" /><img height="100" src="https://seeklogo.com/images/A/apollo-logo-DC7DD3C444-seeklogo.com.png" /><img height="100" src="https://logos-download.com/wp-content/uploads/2016/09/Docker_logo_small.png" /><img height="100" src="https://www.ikoula.com/sites/default/files/images/mongodb_ico.png" />
+<img height="100" src="https://seeklogo.com/images/T/typescript-logo-B29A3F462D-seeklogo.com.png" /><img src="https://blog.savoirfairelinux.com/fr-ca/wp-content/uploads/2017/10/VQLBJ0TR_200x200.png" height="100" /><img height="100" src="https://seeklogo.com/images/A/apollo-logo-DC7DD3C444-seeklogo.com.png" /><img height="100" src="https://logos-download.com/wp-content/uploads/2016/09/Docker_logo_small.png" /><img height="100" src="https://www.ikoula.com/sites/default/files/images/mongodb_ico.png" /><img height="100" src="https://avatars0.githubusercontent.com/u/11887183?s=200&v=4" />
 
 *Built with:*
 
@@ -14,6 +14,7 @@
 - Apollo server ( on express )
 - GraphQL ( with tools )
 - JsonWebToken
+- Inversify
 
 *Principles:*
 
@@ -21,6 +22,7 @@
 - e2e testing
 - unit testing
 - *Custom JWT authentication* with hashed passwords stored in DB.
+- Based on dependency injection principles.
 
 ### Development
 
@@ -150,7 +152,7 @@ To reflect subscription:
 	}
 ```
 2. Go to [localhost](http://localhost:5555/)
-3. Click only button there is.
+
 ### Production
 
 ```bash
@@ -158,10 +160,10 @@ docker-compose up -d
 ```
 
 ## Change schema on fly
-On constant GRAPHQL_MIDDLEWARE from server.constants call method .replace(middleware) and pass it middleware which to put.
-Async function changeSchema(passedTypes?) from helper.functions is beta version of ExpressGraphQL middleware
+Constants GRAPHQL_MIDDLEWARE method .replace(middleware) change middleware which will be executed.
+Async function changeSchema() from helper.functions is beta version of ExpressGraphQL middleware
 
-When adding middleware on server, GRAPHQL_MIDDLEWARE.haldler() will resolve that. Need to be called only on init.
+GRAPHQL_MIDDLEWARE.haldler() will add middleware on desired endpoint.
 
 ### Commercial break
 
