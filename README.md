@@ -15,6 +15,7 @@
 - GraphQL ( with tools )
 - JsonWebToken
 - Inversify
+- SonarTS
 
 *Principles:*
 

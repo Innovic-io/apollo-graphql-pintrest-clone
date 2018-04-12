@@ -43,7 +43,7 @@ export default class PinResolver implements IPinResolver {
       },
 
       // get pins from authorized user
-      async getUserPins(parent, {}, context: IAuthorization) {
+      async getUserPins(parent, args, context: IAuthorization) {
         return await pinService.getUserPins(context._id);
       },
 

@@ -81,7 +81,7 @@ export function comparePasswords(input: string, salted: string, match: string): 
       if (err) {
         reject(err);
       } else {
-        setTimeout(() => { resolve((hash.toString('hex') === match) as boolean); }, timeout);
+        setTimeout(() => { resolve(hash.toString('hex') === match); }, timeout);
       }
     });
   });

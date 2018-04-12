@@ -107,7 +107,7 @@ export const makeToken = async (user: IUser, password: string): Promise<string> 
 };
 
 export const initializeResolvers = () => {
-  if(RESOLVERS.length === 0) {
+  if (RESOLVERS.length === 0) {
     RESOLVERS.push(
       rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
       rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),

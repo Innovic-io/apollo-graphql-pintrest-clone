@@ -38,17 +38,17 @@ export default class UserResolver implements IUserResolver {
         return await userService.getAll();
       },
 
-      async getUser(parent, {}, context: IAuthorization) {
+      async getUser(parent, args, context: IAuthorization) {
 
         return await userService.getByID(context._id);
       },
 
-      async getUserFollowings(parent, {}, context: IAuthorization) {
+      async getUserFollowings(parent, args, context: IAuthorization) {
 
         return await userService.getFollowing(context._id, USERS_ELEMENT.FOLLOWING);
       },
 
-      async getUserFollowers(parent, {}, context: IAuthorization) {
+      async getUserFollowers(parent, args, context: IAuthorization) {
 
         return await userService.getFollowers(context._id);
       },
