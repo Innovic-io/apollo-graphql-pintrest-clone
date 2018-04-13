@@ -13,12 +13,9 @@ let userService;
 
 @Resolver('User')
 export default class UserResolver implements IResolver {
-  private Subscription;
-
   constructor(
     @inject(SERVICE_TYPES.UserService) injectedUserService: IUserService,
   ) {
-    this.setSubscription();
     userService = injectedUserService;
   }
 
@@ -90,12 +87,6 @@ export default class UserResolver implements IResolver {
   async boards(users: IUser) {
 
     return await userService.getFollowing(users._id, USERS_ELEMENT.BOARDS);
-  }
-
-  setSubscription() {
-    this.Subscription = {
-      userChanged: { subscribe: () => pubsub.asyncIterator(USER_CHANGED_TOPIC) },
-    };
   }
 
   getAll() {
