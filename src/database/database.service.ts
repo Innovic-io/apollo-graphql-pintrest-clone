@@ -1,10 +1,10 @@
 import { MongoClient } from 'mongodb';
 
 import { DB_NAME, DATABASE_URI, TEST_DATABASE_URI, DB_TESTING } from '../server.constants';
-import { injectable } from 'inversify';
 import { IDatabase, IDatabaseService } from './interfaces/database.interface';
+import { Service } from '../decorators/service.decorator';
 
-@injectable()
+@Service()
 export class DatabaseService implements IDatabaseService {
   private database: IDatabase;
 

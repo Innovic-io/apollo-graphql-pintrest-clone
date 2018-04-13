@@ -1,5 +1,5 @@
 import { Collection, ObjectID } from 'mongodb';
-import { inject, injectable } from 'inversify';
+import { inject } from 'inversify';
 import 'reflect-metadata';
 
 import {
@@ -10,11 +10,12 @@ import { IPin, IPinService } from './pin.interface';
 import { USERS_ELEMENT } from '../../common/common.constants';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
 import { IDatabaseService } from '../../database/interfaces/database.interface';
+import {Service} from '../../decorators/service.decorator';
 
 /**
  * Service to control data of Pin type and Pin collection
  */
-@injectable()
+@Service()
 export default class PinService implements IPinService {
 
   private collectionName =  SERVICE_ENUM.PINS;
