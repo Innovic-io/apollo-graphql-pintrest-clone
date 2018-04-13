@@ -121,9 +121,7 @@ export const initializeResolvers = () => {
       rootContainer.get<IResolver>(RESOLVER_TYPES.UserResolver).getAll(),
       rootContainer.get<IResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
       rootContainer.get<IResolver>(RESOLVER_TYPES.PinResolver).getAll(),
-      rootContainer
-        .get<IResolver>(RESOLVER_TYPES.ScalarResolver)
-        .getAll(),
+      rootContainer.get<IResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
     );
   }
 };
