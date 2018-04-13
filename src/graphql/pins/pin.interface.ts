@@ -24,11 +24,3 @@ export interface IPinService {
   getPinsFromBoard(boardID: string | ObjectID, creator: ObjectID): Promise<IPin[]>;
   checkPinPermission(_id: ObjectID | string, creator: ObjectID);
 }
-
-export interface IPinResolver {
-  setQuery(): IPinResolver;
-  setMutation(): IPinResolver;
-  setSubscription(): IPinResolver;
-  setPin(): IPinResolver;
-  getAll();
-}

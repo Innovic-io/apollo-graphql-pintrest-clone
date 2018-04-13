@@ -3,25 +3,15 @@ import { graphqlExpress } from 'apollo-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
 import {
-  SERVICE_ENUM,
-  USERS_ELEMENT,
-  WRONG_ID_FORMAT_ERROR,
-  WRONG_USERNAME_AND_PASSWORD,
+  IResolver, SERVICE_ENUM, USERS_ELEMENT, WRONG_ID_FORMAT_ERROR, WRONG_USERNAME_AND_PASSWORD,
 } from './common.constants';
-import {
-  IUser,
-  IUserResolver,
-  IUserService,
-} from '../graphql/user/user.interface';
+import { IUser, IUserService } from '../graphql/user/user.interface';
 import { comparePasswords, generateToken } from './cryptography';
 import { getDataOnFly } from '../typeDefs';
 import { IAuthorization } from '../authorization/authorization.interface';
 import { rootContainer } from '../inversify/inversify.config';
 import { RESOLVER_TYPES, SERVICE_TYPES } from '../inversify/inversify.types';
 import { IDatabaseService } from '../database/interfaces/database.interface';
-import { IBoardResolver } from '../graphql/boards/board.interface';
-import { IScalarsResolver } from '../graphql/scalars/scalars.interface';
-import { IPinResolver } from '../graphql/pins/pin.interface';
 import { RESOLVERS } from '../server.constants';
 
 const userService = rootContainer.get<IUserService>(SERVICE_TYPES.UserService);
@@ -33,6 +23,7 @@ const userService = rootContainer.get<IUserService>(SERVICE_TYPES.UserService);
  * @returns {ObjectID}
  */
 export const createObjectID = (id?: string | ObjectID) => {
+
   if (!!id && !ObjectID.isValid(id)) {
     throw new Error(WRONG_ID_FORMAT_ERROR);
   }
@@ -73,7 +64,8 @@ export const getServiceById = async <T> (
     .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
     .getDB();
 
-  return await db.collection(serviceName).findOne<T>({ _id });
+  return await db.collection(serviceName)
+    .findOne<T>({ _id });
 };
 
 /**
@@ -128,12 +120,10 @@ export const makeToken = async (
 export const initializeResolvers = () => {
   if (RESOLVERS.length === 0) {
     RESOLVERS.push(
-      rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
-      rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
-      rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
-      rootContainer
-        .get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver)
-        .getAll(),
+      rootContainer.get<IResolver>(RESOLVER_TYPES.UserResolver).getAll(),
+      rootContainer.get<IResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
+      rootContainer.get<IResolver>(RESOLVER_TYPES.PinResolver).getAll(),
+      rootContainer.get<IResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
     );
   }
 };
