@@ -1,6 +1,6 @@
 import { Collection, ObjectID } from 'mongodb';
 import { Observable } from 'rxjs';
-import { injectable, inject } from 'inversify';
+import { inject } from 'inversify';
 import 'reflect-metadata';
 
 import { IBoard, IBoardService } from './board.interface';
@@ -13,11 +13,12 @@ import {
 import { IUser } from '../user/user.interface';
 import { IDatabaseService } from '../../database/interfaces/database.interface';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
+import { Service } from '../../decorators/service.decorator';
 
 /**
  * Service to control data of Board type and Board collection
  */
-@injectable()
+@Service()
 export default class BoardService implements IBoardService {
 
   private collectionName = SERVICE_ENUM.BOARDS;

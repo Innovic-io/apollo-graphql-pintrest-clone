@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { Collection, ObjectID } from 'mongodb';
-import { inject, injectable } from 'inversify';
+import { inject } from 'inversify';
 import 'rxjs/add/observable/forkJoin';
 import 'reflect-metadata';
 
@@ -20,11 +20,12 @@ import {
 import { hashPassword, IHashedPassword } from '../../common/cryptography';
 import { IDatabaseService } from '../../database/interfaces/database.interface';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
+import {Service} from '../../decorators/service.decorator';
 
 /**
  * Service to control data of Board type
  */
-@injectable()
+@Service()
 export default class UserService implements IUserService {
   private collectionName = SERVICE_ENUM.USERS;
   database: Collection;

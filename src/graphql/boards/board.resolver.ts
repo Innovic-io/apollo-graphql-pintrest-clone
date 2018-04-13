@@ -10,7 +10,6 @@ import { Resolver, Query, Mutation, ResolveProperty } from '../../decorators/res
 let boardService;
 
 @Resolver('Board')
-// @injectable()
 export default class BoardResolver implements IResolver {
 
   constructor( @inject(SERVICE_TYPES.BoardService) injectedBoardService: IBoardService ) {
