@@ -2,7 +2,7 @@
   "name": "Pinterest-apollo-graphql",
   "scripts": {
     "start:watch": "nodemon",
-    "lint": "tslint  './src/**/*.ts' -c tslint.json --fix",
+    "lint": "tslint  --project ./tsconfig.json 'src/**/*.{ts,tsx}' -c tslint.json --fix",
     "e2e": "jest --config=e2e/jest-e2e.json --forceExit --useStderr --bail",
     "test": "jest",
     "compile": "tsc",
@@ -40,6 +40,7 @@
     "ts-jest": "^21.2.4",
     "ts-node": "^5.0.0",
     "tslint": "~5.7.0",
+    "tslint-sonarts": "^1.6.0",
     "typescript": "2.4.2",
     "inversify": "latest"
   },

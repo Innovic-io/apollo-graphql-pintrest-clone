@@ -1,10 +1,11 @@
+import { injectable } from 'inversify';
+
 import DateType from './date.scalar';
 import ImageScalarType from './image.scalar';
-import { injectable } from 'inversify';
-import { IScalarsResolver } from './scalars.interface';
+import { IResolver } from '../../common/common.constants';
 
 @injectable()
-export default class ScalarsResolver implements IScalarsResolver {
+export default class ScalarsResolver implements IResolver {
   private readonly Date;
   private readonly ImageScalar;
 

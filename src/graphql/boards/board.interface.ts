@@ -25,7 +25,3 @@ export interface IBoardService {
   getUsers(_id: ObjectID, users: ObjectID[]): Promise<IUser[]>;
   getCreators(_id: ObjectID): Promise<IBoard[]>;
 }
-
-export interface IBoardResolver {
-  getAll()
-}
