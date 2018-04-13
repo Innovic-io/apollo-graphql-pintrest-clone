@@ -27,9 +27,5 @@ export interface IBoardService {
 }
 
 export interface IBoardResolver {
-
-  setQuery(): IBoardResolver;
-  setMutation(): IBoardResolver;
-  setBoard(): IBoardResolver;
-  getAll();
+  getAll()
 }
