@@ -46,7 +46,6 @@
     "ts-node": "^5.0.0",
     "tslint": "~5.7.0",
     "tslint-sonarts": "^1.6.0",
-    "tslint-config-prettier": "~1.10.0",
     "typescript": "2.4.2",
     "inversify": "latest"
   },
@@ -56,6 +55,11 @@
     },
     "setupTestFrameworkScriptFile": "./e2e/setup.ts",
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.ts$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "json"]
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ]
   }
 }

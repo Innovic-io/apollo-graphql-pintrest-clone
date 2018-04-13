@@ -1,6 +1,9 @@
 {
   "defaultSeverity": "error",
-  "extends": ["tslint:recommended", "tslint-sonarts"],
+  "extends": [
+    "tslint:recommended",
+    "tslint-sonarts"
+  ],
   "jsRules": {
     "no-unused-expression": true
   },

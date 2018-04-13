@@ -1,77 +1,17 @@
-import { inject, injectable } from 'inversify';
+import { inject } from 'inversify';
 
 import { IAuthorization } from '../../authorization/authorization.interface';
-import { IBoard, IBoardResolver, IBoardService } from './board.interface';
+import { IBoard, IBoardService } from './board.interface';
 import { getServiceById } from '../../common/helper.functions';
-import { SERVICE_ENUM } from '../../common/common.constants';
+import { IResolver, SERVICE_ENUM } from '../../common/common.constants';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
+import { Resolver, Query, Mutation, ResolveProperty } from '../../decorators/resolver.decorator';
 
 let boardService;
 
-let queries = {};
-let mutations = {};
-let board = {
-
-  async followers(boards: IBoard) {
-
-    if (!boards.followers) {
-      return null;
-    }
-
-    return await boardService.getUsers(boards._id, boards.followers);
-  },
-
-  async creator(boards: IBoard) {
-
-    return await getServiceById(boards.creator, SERVICE_ENUM.USERS);
-  },
-
-  async collaborators(boards: IBoard) {
-
-    if (!boards.collaborators) {
-      return null;
-    }
-
-    return await boardService.getUsers(boards._id, boards.collaborators);
-  },
-};
-
-const resolverQueries = {
-  Query: {},
-  Mutation: {},
-  Subscription: {},
-};
-
-function Resolver(typeToResolve: string) {
-  resolverQueries[typeToResolve] = board;
-  return (target) => {
-
-    const types = Reflect.getMetadata('design:paramtypes', target) || [];
-    Reflect.defineMetadata('inversify:paramtypes', types, target);
-
-    target.prototype.getAll = () => resolverQueries;
-
-    return target;
-  };
-}
-
-function Query() {
-
-  return (target, propertyKey: string, descriptor: PropertyDescriptor) => Object.assign(
-    resolverQueries.Query,
-    {[ propertyKey ]: descriptor.value});
-}
-
-function Mutation() {
-
-  return (target, propertyKey: string, descriptor: PropertyDescriptor) => Object.assign(
-    resolverQueries.Mutation,
-    {[ propertyKey ]: descriptor.value});
-}
-
 @Resolver('Board')
 // @injectable()
-export default class BoardResolver implements IBoardResolver {
+export default class BoardResolver implements IResolver {
 
   constructor( @inject(SERVICE_TYPES.BoardService) injectedBoardService: IBoardService ) {
 
@@ -117,6 +57,32 @@ export default class BoardResolver implements IBoardResolver {
   @Mutation()
   async stopFollowingBoard(parent, { _id }, context: IAuthorization) {
     return await boardService.stopFollowingBoard(_id, context._id);
+  }
+
+  @ResolveProperty()
+  async followers(boards: IBoard) {
+
+    if (!boards.followers) {
+      return null;
+    }
+
+    return await boardService.getUsers(boards._id, boards.followers);
+  }
+
+  @ResolveProperty()
+  async creator(boards: IBoard) {
+
+    return await getServiceById(boards.creator, SERVICE_ENUM.USERS);
+  }
+
+  @ResolveProperty()
+  async collaborators(boards: IBoard) {
+
+    if (!boards.collaborators) {
+      return null;
+    }
+
+    return await boardService.getUsers(boards._id, boards.collaborators);
   }
 
   getAll() {}

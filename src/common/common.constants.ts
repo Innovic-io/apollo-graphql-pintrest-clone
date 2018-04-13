@@ -16,3 +16,7 @@ export enum USERS_ELEMENT {
   BOARDS = 'boards',
   PINS = 'pins',
 }
+
+export interface IResolver {
+  getAll();
+}

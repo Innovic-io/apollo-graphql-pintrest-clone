@@ -1,117 +1,90 @@
-import { inject, injectable } from 'inversify';
+import { inject } from 'inversify';
 
 import { IAuthorization } from '../../authorization/authorization.interface';
 import { getServiceById } from '../../common/helper.functions';
-import { SERVICE_ENUM } from '../../common/common.constants';
-import { IPin, IPinResolver, IPinService } from './pin.interface';
+import { IResolver, SERVICE_ENUM } from '../../common/common.constants';
+import { IPin, IPinService } from './pin.interface';
 import { PIN_CHANGED_TOPIC, pubsub } from '../subscription/subscription.resolver';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
+import { Mutation, Query, ResolveProperty, Resolver, Subscription } from '../../decorators/resolver.decorator';
 
 let pinService;
 
 // if something need to be verified, Authorization is stored in context
-@injectable()
-export default class PinResolver implements IPinResolver {
-  private Query;
-  private Mutation;
-  private Subscription;
-  private Pin;
+@Resolver('Pin')
+export default class PinResolver implements IResolver {
 
   constructor(
     @inject(SERVICE_TYPES.PinService) injectedPinService: IPinService,
   ) {
-    this.setQuery();
-    this.setMutation();
-    this.setPin();
-    this.setSubscription();
     pinService = injectedPinService;
   }
 
-  setQuery() {
-    this.Query = {
-
-      async getPin(parent, { _id }) {
-        return await pinService.getByID(_id);
-      },
-
-      async getAllPins() {
-
-        const allUsers = await pinService.getAllPins();
-        const [ single ] = allUsers;
-        pubsub.publish(PIN_CHANGED_TOPIC, { pinChanged: single });
-        return allUsers;
-      },
-
-      // get pins from authorized user
-      async getUserPins(parent, args, context: IAuthorization) {
-        return await pinService.getUserPins(context._id);
-      },
-
-      async getPinsFromBoard(parent, { boardID }, context: IAuthorization) {
-        return await pinService.getPinsFromBoard(boardID, context._id);
-      },
-    };
-
-    return this;
+  @Query()
+  async getPin(parent, { _id }) {
+    return await pinService.getByID(_id);
   }
 
-  setMutation() {
-    this.Mutation = {
+  @Query()
+  async getAllPins() {
 
-      async createPin(parent, args, context: IAuthorization) {
-        return await pinService.createPin(args, context._id);
-      },
-
-      async updatePin(parent, args, context: IAuthorization) {
-        await pinService.checkPinPermission(args._id, context._id);
-        return await pinService.updatePin(args, context._id);
-      },
-
-      async deletePin(parent, { _id }, context: IAuthorization) {
-        return await pinService.deletePin(_id, context._id);
-      },
-    };
-    return this;
+    const allUsers = await pinService.getAllPins();
+    const [ single ] = allUsers;
+    pubsub.publish(PIN_CHANGED_TOPIC, { pinChanged: single.name });
+    return allUsers;
   }
 
-  setPin() {
-    this.Pin = {
-
-      async creator(pin: IPin) {
-        if (!pin.creator) {
-          return null;
-        }
-
-        return await getServiceById(pin.creator, SERVICE_ENUM.USERS);
-      },
-
-      async board(pin: IPin) {
-        if (!pin.board) {
-          return null;
-        }
-
-        return await getServiceById(pin.board, SERVICE_ENUM.BOARDS);
-      },
-    };
-    return this;
+  // get pins from authorized user
+  @Query()
+  async getUserPins(parent, args, context: IAuthorization) {
+    return await pinService.getUserPins(context._id);
   }
 
-  setSubscription() {
-    this.Subscription = {
-      pinChanged: {
-        subscribe: () => pubsub.asyncIterator(PIN_CHANGED_TOPIC),
-      },
-    };
-
-    return this;
+  @Query()
+  async getPinsFromBoard(parent, { boardID }, context: IAuthorization) {
+    return await pinService.getPinsFromBoard(boardID, context._id);
   }
 
-  getAll() {
+  @Mutation()
+  async createPin(parent, args, context: IAuthorization) {
+    return await pinService.createPin(args, context._id);
+  }
+
+  @Mutation()
+  async updatePin(parent, args, context: IAuthorization) {
+    await pinService.checkPinPermission(args._id, context._id);
+    return await pinService.updatePin(args, context._id);
+  }
+
+  @Mutation()
+  async deletePin(parent, { _id }, context: IAuthorization) {
+    return await pinService.deletePin(_id, context._id);
+  }
+
+  @ResolveProperty()
+  async creator(pin: IPin) {
+    if (!pin.creator) {
+      return null;
+    }
+
+    return await getServiceById(pin.creator, SERVICE_ENUM.USERS);
+  }
+
+  @ResolveProperty()
+  async board(pin: IPin) {
+    if (!pin.board) {
+      return null;
+    }
+
+    return await getServiceById(pin.board, SERVICE_ENUM.BOARDS);
+  }
+
+  @Subscription()
+  pinChanged() {
     return {
-      Query: this.Query,
-      Mutation: this.Mutation,
-      Pin: this.Pin,
-      Subscription: this.Subscription,
+      subscribe: () => pubsub.asyncIterator(PIN_CHANGED_TOPIC),
     };
   }
+
+  getAll() {}
 }
