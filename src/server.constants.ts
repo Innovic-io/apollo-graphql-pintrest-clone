@@ -1,5 +1,9 @@
+import { Db } from 'mongodb';
 import { DynamicMiddleware } from './common/dynamic.middleware';
 import { config } from 'dotenv';
+import { IUserService } from './graphql/user/user.interface';
+import { IPinService } from './graphql/pins/pin.interface';
+import { IBoardService } from './graphql/boards/board.interface';
 
 config();
 
@@ -23,3 +27,9 @@ export const  GRAPHQL_MIDDLEWARE = new DynamicMiddleware();
 export const FULL_PINTEREST = 'fullPinterest';
 
 export let RESOLVERS = [];
+export let AVAILABLE_SERVICES = {
+  UserService: null as IUserService,
+  PinService: null as IPinService,
+  BoardService: null as IBoardService,
+  DatabaseService: null as Db,
+};

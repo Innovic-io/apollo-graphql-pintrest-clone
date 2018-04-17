@@ -1,7 +1,5 @@
 import { Collection, ObjectID } from 'mongodb';
 import { Observable } from 'rxjs/Observable';
-import { inject } from 'inversify';
-import 'reflect-metadata';
 
 import { IBoard, IBoardService } from './board.interface';
 import {
@@ -11,9 +9,8 @@ import {
   ALREADY_EXIST_ERROR, DOES_NOT_EXIST, PERMISSION_DENIED, SERVICE_ENUM, USERS_ELEMENT,
 } from '../../common/common.constants';
 import { IUser } from '../user/user.interface';
-import { IDatabaseService } from '../../database/interfaces/database.interface';
-import { SERVICE_TYPES } from '../../inversify/inversify.types';
 import { Service } from '../../decorators/service.decorator';
+import { AVAILABLE_SERVICES } from '../../server.constants';
 
 /**
  * Service to control data of Board type and Board collection
@@ -24,14 +21,8 @@ export default class BoardService implements IBoardService {
   private collectionName = SERVICE_ENUM.BOARDS;
   private database: Collection;
 
-  constructor(
-    @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService,
-  ) {
-
-      injectedDatabase.getDB()
-      .then((value) => {
-        this.database = value.collection(this.collectionName);
-      });
+  constructor() {
+    this.database = AVAILABLE_SERVICES.DatabaseService.collection(this.collectionName);
   }
 
   async getByID(boardID: string | ObjectID): Promise<IBoard> {
