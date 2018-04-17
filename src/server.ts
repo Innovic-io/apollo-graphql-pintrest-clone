@@ -7,11 +7,13 @@ import { Server } from 'http';
 
 import { API_ENDPOINT, GRAPHQL_MIDDLEWARE, PORT } from './server.constants';
 import AuthorizationMiddleware from './authorization/authorization.middleware';
-import { changeSchema } from './common/helper.functions';
+import {changeSchema, getAllServices} from './common/helper.functions';
 
 export let socket: socketIo.Server;
 
 async function bootstrap() {
+
+  await getAllServices();
 
   const changedSchema = await changeSchema();
   GRAPHQL_MIDDLEWARE.replace(changedSchema);
@@ -37,6 +39,7 @@ async function bootstrap() {
 }
 
 async function mainFunction() {
+
   if (process.env.NODE_ENV === 'test') {
     return;
   }
