@@ -56,7 +56,7 @@ export const findByElementKey = async <Service> (
  */
 export const getServiceById = async <T> (
   _id: ObjectID,
-  serviceName: SERVICE_ENUM,
+  serviceName: SERVICE_ENUM
 ): Promise<T> => {
   return await AVAILABLE_SERVICES.DatabaseService
     .collection(serviceName)
@@ -71,11 +71,8 @@ export const getServiceById = async <T> (
  * @param {USERS_ELEMENT} type
  * @returns {Promise<IUser>}
  */
-export const addCreator = async (
-  creatorID: ObjectID,
-  value: ObjectID,
-  type: USERS_ELEMENT,
-): Promise<IUser> => {
+export const addCreator = async (creatorID: ObjectID, value: ObjectID, type: USERS_ELEMENT): Promise<IUser> => {
+
   return await AVAILABLE_SERVICES.UserService
     .addToSet(creatorID, value, type);
 };
