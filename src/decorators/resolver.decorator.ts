@@ -22,28 +22,25 @@ function clearResolverQueries(typeToResolve) {
   resolverQueries.Mutation = {};
   resolverQueries.Resolver = {};
   delete resolverQueries[typeToResolve];
+
+  scalars = {};
 }
 
-export const Scalar = () => (target) => {
-  overrideInjectable(target);
-  const resolved = {...scalars};
-
-  target.prototype.getAll = () => resolved;
-  scalars = {};
-  return target;
-};
+export const Scalar = () => (target) => resolverFunction(target, scalars);
 
 export function Resolver(typeToResolve: string) {
   resolverQueries[typeToResolve] = resolverQueries.Resolver;
   delete resolverQueries.Resolver;
-  return (target) => {
+  return (target) => resolverFunction(target, resolverQueries, typeToResolve);
+}
 
-    overrideInjectable(target);
-    const resolved = {...resolverQueries};
-    target.prototype.getAll = () => resolved;
-    clearResolverQueries(typeToResolve);
-    return target;
-  };
+function resolverFunction(target, toResolve, typeToResolve?) {
+
+  overrideInjectable(target);
+  const resolved = {...toResolve};
+  target.prototype.getAll = () => resolved;
+  clearResolverQueries(typeToResolve);
+  return target;
 }
 
 export const Query = (functionName?: string) =>
