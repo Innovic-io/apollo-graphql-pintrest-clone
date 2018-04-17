@@ -1,6 +1,4 @@
 import { Collection, ObjectID } from 'mongodb';
-import { inject } from 'inversify';
-import 'reflect-metadata';
 
 import {
   addCreator,
@@ -17,9 +15,8 @@ import {
   USERS_ELEMENT,
 } from '../../common/common.constants';
 import { IPin, IPinService } from './pin.interface';
-import { SERVICE_TYPES } from '../../inversify/inversify.types';
-import { IDatabaseService } from '../../database/interfaces/database.interface';
-import {Service} from '../../decorators/service.decorator';
+import { Service } from '../../decorators/service.decorator';
+import { AVAILABLE_SERVICES } from '../../server.constants';
 
 /**
  * Service to control data of Pin type and Pin collection
@@ -29,12 +26,8 @@ export default class PinService implements IPinService {
   private collectionName = SERVICE_ENUM.PINS;
   private database: Collection;
 
-  constructor(
-    @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService,
-  ) {
-    injectedDatabase
-      .getDB()
-      .then(value => (this.database = value.collection(this.collectionName)));
+  constructor() {
+      this.database = AVAILABLE_SERVICES.DatabaseService.collection(this.collectionName);
   }
 
   async getByID(pinID: ObjectID | string): Promise<IPin> {
@@ -96,7 +89,7 @@ export default class PinService implements IPinService {
 
     const inserted = await this.database.insertOne(insertPin);
 
-    const [resultingObject]: IPin[] = inserted.ops;
+    const [ resultingObject ]: IPin[] = inserted.ops;
 
     await addCreator(
       resultingObject.creator,

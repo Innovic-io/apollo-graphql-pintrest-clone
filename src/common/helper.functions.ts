@@ -2,17 +2,17 @@ import { Collection, ObjectID } from 'mongodb';
 import { graphqlExpress } from 'apollo-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
-import {IResolver, SERVICE_ENUM, USERS_ELEMENT, WRONG_ID_FORMAT_ERROR, WRONG_USERNAME_AND_PASSWORD ,} from './common.constants';
-import { IUser,  IUserService ,} from '../graphql/user/user.interface';
+import {
+  IResolver, SERVICE_ENUM, USERS_ELEMENT, WRONG_ID_FORMAT_ERROR, WRONG_USERNAME_AND_PASSWORD,
+} from './common.constants';
+import { IUser } from '../graphql/user/user.interface';
 import { comparePasswords, generateToken } from './cryptography';
 import { getDataOnFly } from '../typeDefs';
 import { IAuthorization } from '../authorization/authorization.interface';
 import { rootContainer } from '../inversify/inversify.config';
 import { RESOLVER_TYPES, SERVICE_TYPES } from '../inversify/inversify.types';
+import { RESOLVERS, AVAILABLE_SERVICES } from '../server.constants';
 import { IDatabaseService } from '../database/interfaces/database.interface';
-import { RESOLVERS } from '../server.constants';
-
-const userService = rootContainer.get<IUserService>(SERVICE_TYPES.UserService);
 
 /**
  * Make Object ID from id provided
@@ -58,11 +58,8 @@ export const getServiceById = async <T> (
   _id: ObjectID,
   serviceName: SERVICE_ENUM,
 ): Promise<T> => {
-  const db = await rootContainer
-    .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
-    .getDB();
-
-  return await db.collection(serviceName)
+  return await AVAILABLE_SERVICES.DatabaseService
+    .collection(serviceName)
     .findOne<T>({ _id });
 };
 
@@ -79,7 +76,8 @@ export const addCreator = async (
   value: ObjectID,
   type: USERS_ELEMENT,
 ): Promise<IUser> => {
-  return await userService.addToSet(creatorID, value, type);
+  return await AVAILABLE_SERVICES.UserService
+    .addToSet(creatorID, value, type);
 };
 
 /**
@@ -95,7 +93,8 @@ export const removeCreator = async (
   valueToRemove: ObjectID,
   arrayName: USERS_ELEMENT,
 ): Promise<IUser> => {
-  return await userService.removeFromSet(userID, valueToRemove, arrayName);
+  return await AVAILABLE_SERVICES.UserService
+    .removeFromSet(userID, valueToRemove, arrayName);
 };
 
 export const makeString = receivedObject => {
@@ -117,6 +116,7 @@ export const makeToken = async (
 
 export const initializeResolvers = () => {
   if (RESOLVERS.length === 0) {
+
     RESOLVERS.push(
       rootContainer.get<IResolver>(RESOLVER_TYPES.UserResolver).getAll(),
       rootContainer.get<IResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
@@ -147,3 +147,13 @@ const makeSchemaOnFly = async (companyID, resolvers) => {
     typeDefs,
   });
 };
+
+export async function getAllServices() {
+  AVAILABLE_SERVICES.DatabaseService = await rootContainer.get<IDatabaseService>(SERVICE_TYPES.DatabaseService).getDB();
+
+  for (const service in SERVICE_TYPES) {
+    if (SERVICE_TYPES[service] !== SERVICE_TYPES.DatabaseService) {
+      AVAILABLE_SERVICES[service] = await rootContainer.get(SERVICE_TYPES[service]);
+    }
+  }
+}

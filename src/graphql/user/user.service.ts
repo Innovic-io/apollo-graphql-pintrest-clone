@@ -1,8 +1,6 @@
 import { Observable } from 'rxjs';
 import { Collection, ObjectID } from 'mongodb';
-import { inject } from 'inversify';
 import 'rxjs/add/observable/forkJoin';
-import 'reflect-metadata';
 
 import { IUser, IUserService } from './user.interface';
 import {
@@ -18,9 +16,8 @@ import {
   USERS_ELEMENT
 } from '../../common/common.constants';
 import { hashPassword, IHashedPassword } from '../../common/cryptography';
-import { IDatabaseService } from '../../database/interfaces/database.interface';
-import { SERVICE_TYPES } from '../../inversify/inversify.types';
 import {Service} from '../../decorators/service.decorator';
+import { AVAILABLE_SERVICES } from '../../server.constants';
 
 /**
  * Service to control data of Board type
@@ -30,12 +27,8 @@ export default class UserService implements IUserService {
   private collectionName = SERVICE_ENUM.USERS;
   database: Collection;
 
-  constructor(
-    @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService
-  ) {
-    injectedDatabase
-      .getDB()
-      .then(value => (this.database = value.collection(this.collectionName)));
+  constructor() {
+      this.database = AVAILABLE_SERVICES.DatabaseService.collection(this.collectionName);
   }
 
   async getByID(userID: string | ObjectID): Promise<IUser> {
@@ -70,7 +63,7 @@ export default class UserService implements IUserService {
 
     const inserted = await this.database.insertOne(inputUser);
 
-    const [resultingObject] = inserted.ops as IUser[];
+    const [ resultingObject ] = inserted.ops as IUser[];
 
     return await makeToken(resultingObject, newUser.password);
   }
