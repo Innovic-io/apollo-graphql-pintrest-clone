@@ -198,6 +198,65 @@ describe('Pinterest ', () => {
     expect(resultingPin.board._id).toEqual(boardID);
   });
 
+  it('should update pin by ID', async () => {
+    const command = 'updatePin';
+    const note = 'some New note';
+
+    const body = {
+      query: `mutation { ${command}(_id: "${pinID}",
+      note: "${note}") 
+        { 
+          _id name note
+          creator { username first_name } 
+          board { _id name }
+        } 
+      }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(header)
+      .expect(200);
+
+    const resultingPin = resource.body.data[ command ];
+
+    expect(resultingPin.creator.username).toEqual(userObject.username);
+    expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
+    expect(resultingPin.name).toEqual(pinObject.name);
+    expect(resultingPin.board.name).toEqual(boardObject.name);
+    expect(resultingPin.board._id).toEqual(boardID);
+    expect(resultingPin.note).toEqual(note);
+  });
+
+  it('should get user pins', async () => {
+    const command = 'getUserPins';
+
+    const body = {
+      query: `{ ${command} 
+        { 
+          _id name
+          creator { username first_name } 
+          board { _id name }
+        } 
+      }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(header)
+      .expect(200);
+
+    const [ resultingPin ] = resource.body.data[ command ];
+
+    expect(resultingPin.creator.username).toEqual(userObject.username);
+    expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
+    expect(resultingPin.name).toEqual(pinObject.name);
+    expect(resultingPin.board.name).toEqual(boardObject.name);
+    expect(resultingPin.board._id).toEqual(boardID);
+  });
+
   it('should get user by ID', async () => {
     const command = 'getUser';
 
