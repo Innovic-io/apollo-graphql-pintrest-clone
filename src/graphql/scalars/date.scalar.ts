@@ -1,5 +1,4 @@
-import { GraphQLScalarType } from 'graphql';
-import { Kind } from 'graphql/language';
+import { GraphQLScalarType, Kind } from 'graphql';
 
 const parseValue = (value) =>  new Date(value);
 const serialize = (value) => new Date(value);

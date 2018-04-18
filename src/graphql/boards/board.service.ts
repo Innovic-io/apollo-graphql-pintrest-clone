@@ -1,5 +1,5 @@
 import { Collection, ObjectID } from 'mongodb';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 

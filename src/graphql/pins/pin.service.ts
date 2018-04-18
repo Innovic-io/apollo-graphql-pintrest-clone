@@ -3,11 +3,20 @@ import { inject, injectable } from 'inversify';
 import 'reflect-metadata';
 
 import {
-  addCreator, createObjectID, findByElementKey, getServiceById, removeCreator,
+  addCreator,
+  createObjectID,
+  findByElementKey,
+  getServiceById,
+  removeCreator,
 } from '../../common/helper.functions';
-import { DOES_NOT_EXIST, ALREADY_EXIST_ERROR, PERMISSION_DENIED, SERVICE_ENUM } from '../../common/common.constants';
+import {
+  DOES_NOT_EXIST,
+  ALREADY_EXIST_ERROR,
+  PERMISSION_DENIED,
+  SERVICE_ENUM,
+  USERS_ELEMENT,
+} from '../../common/common.constants';
 import { IPin, IPinService } from './pin.interface';
-import { USERS_ELEMENT } from '../../common/common.constants';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
 import { IDatabaseService } from '../../database/interfaces/database.interface';
 
@@ -16,22 +25,23 @@ import { IDatabaseService } from '../../database/interfaces/database.interface';
  */
 @injectable()
 export default class PinService implements IPinService {
-
-  private collectionName =  SERVICE_ENUM.PINS;
+  private collectionName = SERVICE_ENUM.PINS;
   private database: Collection;
 
   constructor(
     @inject(SERVICE_TYPES.DatabaseService) injectedDatabase: IDatabaseService,
   ) {
-
-    injectedDatabase.getDB()
-      .then((value) => this.database = value.collection(this.collectionName) );
+    injectedDatabase
+      .getDB()
+      .then(value => (this.database = value.collection(this.collectionName)));
   }
 
   async getByID(pinID: ObjectID | string): Promise<IPin> {
-
-    return await findByElementKey<IPin>(this.database, '_id', createObjectID(pinID));
-
+    return await findByElementKey<IPin>(
+      this.database,
+      '_id',
+      createObjectID(pinID),
+    );
   }
 
   /**
@@ -41,14 +51,14 @@ export default class PinService implements IPinService {
    * @returns {Promise<IPin[]>}
    */
   async getUserPins(_id: string | ObjectID): Promise<IPin[]> {
-
-    const result = await this.database.find<IPin>({creator: createObjectID(_id)});
+    const result = await this.database.find<IPin>({
+      creator: createObjectID(_id),
+    });
 
     return result.toArray();
   }
 
   async getAllPins(): Promise<IPin[]> {
-
     const result = await this.database.find({});
 
     return result.toArray();
@@ -62,8 +72,7 @@ export default class PinService implements IPinService {
    * @returns {Promise<IPin>}
    */
   async createPin(newPin: IPin, creator: ObjectID): Promise<IPin> {
-
-    if (!await getServiceById(creator, SERVICE_ENUM.USERS)) {
+    if (!(await getServiceById(creator, SERVICE_ENUM.USERS))) {
       throw new Error(DOES_NOT_EXIST('Creator '));
     }
 
@@ -71,7 +80,9 @@ export default class PinService implements IPinService {
       throw new Error(ALREADY_EXIST_ERROR('Name'));
     }
 
-    if (!await getServiceById(createObjectID(newPin.board), SERVICE_ENUM.BOARDS)) {
+    if (
+      !(await getServiceById(createObjectID(newPin.board), SERVICE_ENUM.BOARDS))
+    ) {
       throw new Error(DOES_NOT_EXIST('Board '));
     }
 
@@ -84,9 +95,13 @@ export default class PinService implements IPinService {
 
     const inserted = await this.database.insertOne(insertPin);
 
-    const [ resultingObject ]: IPin[] = inserted.ops;
+    const [resultingObject]: IPin[] = inserted.ops;
 
-    await addCreator(resultingObject.creator, resultingObject._id, USERS_ELEMENT.PINS);
+    await addCreator(
+      resultingObject.creator,
+      resultingObject._id,
+      USERS_ELEMENT.PINS,
+    );
 
     return resultingObject;
   }
@@ -99,10 +114,13 @@ export default class PinService implements IPinService {
    * @returns {Promise<IPin>}
    */
   async updatePin(sentPin: IPin, creatorID: ObjectID): Promise<IPin> {
-
     await this.checkPinPermission(sentPin._id, creatorID);
 
-    const exist = await findByElementKey<IPin>(this.database, '_id', createObjectID(sentPin._id));
+    const exist = await findByElementKey<IPin>(
+      this.database,
+      '_id',
+      createObjectID(sentPin._id),
+    );
 
     if (!exist) {
       throw new Error(DOES_NOT_EXIST('Pin with sent ID '));
@@ -114,8 +132,8 @@ export default class PinService implements IPinService {
 
     delete sentPin._id;
 
-    const result = await this.database
-      .findOneAndUpdate({_id: exist._id},
+    const result = await this.database.findOneAndUpdate(
+      { _id: exist._id },
       { $set: sentPin },
       { returnOriginal: false },
     );
@@ -124,7 +142,6 @@ export default class PinService implements IPinService {
   }
 
   async deletePin(_id: string | ObjectID, creatorID: ObjectID): Promise<IPin> {
-
     await this.checkPinPermission(_id, creatorID);
 
     const result = await this.database.findOneAndDelete({
@@ -143,10 +160,14 @@ export default class PinService implements IPinService {
    * @param {ObjectID} creator
    * @returns {Promise<IPin>}
    */
-  async getPinsFromBoard(boardID: string | ObjectID, creator: ObjectID): Promise<IPin[]> {
-
-    const result = await this.database
-      .find<IPin>({creator, board: createObjectID(boardID)});
+  async getPinsFromBoard(
+    boardID: string | ObjectID,
+    creator: ObjectID,
+  ): Promise<IPin[]> {
+    const result = await this.database.find<IPin>({
+      creator,
+      board: createObjectID(boardID),
+    });
 
     return result.toArray();
   }
@@ -159,9 +180,11 @@ export default class PinService implements IPinService {
    * @returns {Promise<{valid: boolean; creator: ObjectID}>}
    */
   async checkPinPermission(_id: ObjectID | string, creator: ObjectID) {
-
-    const result = await findByElementKey<IPin>(this.database,
-      '_id', createObjectID(_id));
+    const result = await findByElementKey<IPin>(
+      this.database,
+      '_id',
+      createObjectID(_id),
+    );
 
     if (!result.creator.equals(creator)) {
       throw new Error(PERMISSION_DENIED);

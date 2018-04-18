@@ -2,8 +2,17 @@ import { Collection, ObjectID } from 'mongodb';
 import { graphqlExpress } from 'apollo-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
-import { SERVICE_ENUM, USERS_ELEMENT, WRONG_ID_FORMAT_ERROR, WRONG_USERNAME_AND_PASSWORD } from './common.constants';
-import { IUser, IUserResolver, IUserService } from '../graphql/user/user.interface';
+import {
+  SERVICE_ENUM,
+  USERS_ELEMENT,
+  WRONG_ID_FORMAT_ERROR,
+  WRONG_USERNAME_AND_PASSWORD,
+} from './common.constants';
+import {
+  IUser,
+  IUserResolver,
+  IUserService,
+} from '../graphql/user/user.interface';
 import { comparePasswords, generateToken } from './cryptography';
 import { getDataOnFly } from '../typeDefs';
 import { IAuthorization } from '../authorization/authorization.interface';
@@ -24,7 +33,6 @@ const userService = rootContainer.get<IUserService>(SERVICE_TYPES.UserService);
  * @returns {ObjectID}
  */
 export const createObjectID = (id?: string | ObjectID) => {
-
   if (!!id && !ObjectID.isValid(id)) {
     throw new Error(WRONG_ID_FORMAT_ERROR);
   }
@@ -42,9 +50,12 @@ export const createObjectID = (id?: string | ObjectID) => {
  *
  * @returns {Promise<Service>}
  */
-export const findByElementKey = async <Service> (sentDatabase: Collection, elementKey: string, searchValue: any): Promise<Service> => {
-
-  return await sentDatabase.findOne<Service>({ [ elementKey ]: searchValue });
+export const findByElementKey = async <Service> (
+  sentDatabase: Collection,
+  elementKey: string,
+  searchValue: any,
+): Promise<Service> => {
+  return await sentDatabase.findOne<Service>({ [elementKey]: searchValue });
 };
 
 /**
@@ -54,14 +65,15 @@ export const findByElementKey = async <Service> (sentDatabase: Collection, eleme
  * @param {SERVICE_ENUM} serviceName
  * @returns {Promise<any>}
  */
-export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENUM): Promise<T> => {
-
+export const getServiceById = async <T> (
+  _id: ObjectID,
+  serviceName: SERVICE_ENUM,
+): Promise<T> => {
   const db = await rootContainer
     .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
     .getDB();
 
-  return await db.collection(serviceName)
-    .findOne<T>({ _id });
+  return await db.collection(serviceName).findOne<T>({ _id });
 };
 
 /**
@@ -72,8 +84,11 @@ export const getServiceById = async <T> (_id: ObjectID, serviceName: SERVICE_ENU
  * @param {USERS_ELEMENT} type
  * @returns {Promise<IUser>}
  */
-export const addCreator = async (creatorID: ObjectID, value: ObjectID, type: USERS_ELEMENT): Promise<IUser> => {
-
+export const addCreator = async (
+  creatorID: ObjectID,
+  value: ObjectID,
+  type: USERS_ELEMENT,
+): Promise<IUser> => {
   return await userService.addToSet(creatorID, value, type);
 };
 
@@ -85,21 +100,25 @@ export const addCreator = async (creatorID: ObjectID, value: ObjectID, type: USE
  * @param {USERS_ELEMENT} arrayName
  * @returns {Promise<IUser>}
  */
-export const removeCreator = async (userID: ObjectID, valueToRemove: ObjectID, arrayName: USERS_ELEMENT): Promise<IUser> => {
-
+export const removeCreator = async (
+  userID: ObjectID,
+  valueToRemove: ObjectID,
+  arrayName: USERS_ELEMENT,
+): Promise<IUser> => {
   return await userService.removeFromSet(userID, valueToRemove, arrayName);
 };
 
-export const makeString = (receivedObject) => {
-  return Object
-    .keys(receivedObject)
-    .map((objectKey) => `${objectKey}:"${receivedObject[ objectKey ]}"`)
+export const makeString = receivedObject => {
+  return Object.keys(receivedObject)
+    .map(objectKey => `${objectKey}:"${receivedObject[objectKey]}"`)
     .join(',');
 };
 
-export const makeToken = async (user: IUser, password: string): Promise<string> => {
-
-  if (!user || !await comparePasswords(password, user.salt, user.password)) {
+export const makeToken = async (
+  user: IUser,
+  password: string,
+): Promise<string> => {
+  if (!user || !(await comparePasswords(password, user.salt, user.password))) {
     throw new Error(WRONG_USERNAME_AND_PASSWORD);
   }
 
@@ -112,23 +131,22 @@ export const initializeResolvers = () => {
       rootContainer.get<IUserResolver>(RESOLVER_TYPES.UserResolver).getAll(),
       rootContainer.get<IBoardResolver>(RESOLVER_TYPES.BoardResolver).getAll(),
       rootContainer.get<IPinResolver>(RESOLVER_TYPES.PinResolver).getAll(),
-      rootContainer.get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver).getAll(),
+      rootContainer
+        .get<IScalarsResolver>(RESOLVER_TYPES.ScalarResolver)
+        .getAll(),
     );
   }
 };
 
 export const changeSchema = async () => {
   initializeResolvers();
-  return graphqlExpress(
-    async (req: any) => {
-
-      const schema = await makeSchemaOnFly(req.headers.company, RESOLVERS);
-      return Object.assign({
-        schema,
-        context: req.user as IAuthorization,
-      });
-    },
-  );
+  return graphqlExpress(async (req: any) => {
+    const schema = await makeSchemaOnFly(req.headers.company, RESOLVERS);
+    return {
+      schema,
+      context: req.user as IAuthorization,
+    };
+  });
 };
 
 const makeSchemaOnFly = async (companyID, resolvers) => {

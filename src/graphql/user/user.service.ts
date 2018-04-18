@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { Collection, ObjectID } from 'mongodb';
 import { inject, injectable } from 'inversify';
 import 'rxjs/add/observable/forkJoin';
