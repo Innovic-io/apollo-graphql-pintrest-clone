@@ -25,7 +25,7 @@ import { SERVICE_TYPES } from '../../inversify/inversify.types';
  * Service to control data of Board type
  */
 @injectable()
-export default class UserService implements IUserService                        {
+export default class UserService implements IUserService {
   private collectionName = SERVICE_ENUM.USERS;
   database: Collection;
 
