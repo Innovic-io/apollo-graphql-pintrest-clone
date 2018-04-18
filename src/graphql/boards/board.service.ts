@@ -1,5 +1,5 @@
 import { Collection, ObjectID } from 'mongodb';
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
 
 import { IBoard, IBoardService } from './board.interface';
 import {

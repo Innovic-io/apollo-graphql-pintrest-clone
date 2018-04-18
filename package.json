@@ -10,7 +10,6 @@
     "coverage": "jest --coverage",
     "start:prod": "node ./dist/src/server.js",
     "script": "m2gql -d mongodb://localhost:25555/PinterestDB -s fullPinterest",
-    "precommit": "pretty-quick --staged",
     "pretty": "pretty-quick"
   },
   "dependencies": {
