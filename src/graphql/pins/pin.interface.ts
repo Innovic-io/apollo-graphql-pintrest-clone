@@ -21,14 +21,9 @@ export interface IPinService {
   createPin(newPin: IPin, creator: ObjectID): Promise<IPin>;
   updatePin(sentPin: IPin, creatorID: ObjectID): Promise<IPin>;
   deletePin(_id: string | ObjectID, creatorID: ObjectID): Promise<IPin>;
-  getPinsFromBoard(boardID: string | ObjectID, creator: ObjectID): Promise<IPin[]>;
+  getPinsFromBoard(
+    boardID: string | ObjectID,
+    creator: ObjectID
+  ): Promise<IPin[]>;
   checkPinPermission(_id: ObjectID | string, creator: ObjectID);
-}
-
-export interface IPinResolver {
-  setQuery(): IPinResolver;
-  setMutation(): IPinResolver;
-  setSubscription(): IPinResolver;
-  setPin(): IPinResolver;
-  getAll();
 }

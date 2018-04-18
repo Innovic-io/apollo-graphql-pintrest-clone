@@ -1,11 +1,11 @@
 import { MongoClient } from 'mongodb';
 import { MongodHelper } from 'mongodb-prebuilt';
 
-import { DB_NAME, DATABASE_URI, TEST_DATABASE_URI, DB_TESTING, PORT, DB_VOLUME_LOCATION } from '../server.constants';
-import { injectable } from 'inversify';
+import { DB_NAME, DATABASE_URI, TEST_DATABASE_URI, DB_TESTING , PORT, DB_VOLUME_LOCATION} from '../server.constants';
 import { IDatabase, IDatabaseService } from './interfaces/database.interface';
+import { Service } from '../decorators/service.decorator';
 
-@injectable()
+@Service()
 export class DatabaseService implements IDatabaseService {
   private database: IDatabase;
 
@@ -28,14 +28,12 @@ export class DatabaseService implements IDatabaseService {
 
       this.database = connection.db(DB_TESTING);
     } else {
-
       connection = await MongoClient.connect(DATABASE_URI);
       this.database = connection.db(DB_NAME);
     }
   }
 
   async getDB(): Promise<IDatabase> {
-
     if (!this.database) {
       await this.initializeConnection();
     }
