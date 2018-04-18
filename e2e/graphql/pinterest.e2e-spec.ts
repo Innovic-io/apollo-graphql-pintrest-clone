@@ -261,6 +261,61 @@ describe('Pinterest ', () => {
     expect(resultingPin.board._id).toEqual(boardID);
   });
 
+  it('should get user boards', async () => {
+    const command = 'getUserBoards';
+
+    const body = {
+      query: `{ ${command} 
+       { 
+          _id name
+          creator { username first_name } 
+        } 
+      }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(header)
+      .expect(200);
+
+    expect(resource.body.data[command] instanceof Array).toBe(true);
+    const [resultingBoard] = resource.body.data[command];
+
+    expect(resultingBoard.creator.username).toEqual(userObject.username);
+    expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
+    expect(resultingBoard.name).toEqual(boardObject.name);
+  });
+
+  it('should update board by ID', async () => {
+    const command = 'updateBoard';
+    const description = 'some New description';
+
+    const body = {
+      query: `mutation { ${command}(_id: "${boardID}",
+      description: "${description}") 
+         { 
+          _id name description
+          creator { username first_name } 
+        } 
+      }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(header)
+      .expect(200);
+
+    const resultingBoard = resource.body.data[command];
+
+    expect(resultingBoard.creator.username).toEqual(userObject.username);
+    expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
+    expect(resultingBoard.name).toEqual(boardObject.name);
+    expect(resultingBoard.description).toEqual(description);
+
+  });
+
   it('should get user by ID', async () => {
     const command = 'getUser';
 

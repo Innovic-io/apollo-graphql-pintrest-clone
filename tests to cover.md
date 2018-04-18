@@ -29,11 +29,13 @@
 ###### Mutation
 
 * createBoard
+* updateBoard
 * deleteBoard
 
 ###### Query
 
 * getBoard
+* getUserBoards
 
 ### Left to implement
 
@@ -49,12 +51,8 @@
 ###### Mutation
 
 * followBoard
-* updateBoard
 * stopFollowingBoard
-
 ###### Query
-
-* getUserBoards
 * searchBoard **_(not yet implemented)_**
 * getBoardSuggestion **_(not yet implemented)_**
 * getBoardFollowing
