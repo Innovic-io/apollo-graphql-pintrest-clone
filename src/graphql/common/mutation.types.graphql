@@ -8,8 +8,8 @@ type Mutation {
     image: ImageScalar,        # image we want to upload via multipart form data
     image_url: String    # link to image we want to Pin
     image_base64: String # Base64 encoded image
-  ): Pin                 # image || image_url || image_base64 mandatory
-  # DONE
+  ): Pin
+  # image || image_url || image_base64 mandatory
 
   updatePin(
     _id: ID!, # ID of pin to change
@@ -17,11 +17,10 @@ type Mutation {
     note: String, # The new Pin description.
     link: String # The new Pin link.
   ): Pin
-  # DONE
 
   deletePin( _id:ID!): Pin
-  # DONE
 
+  # Return token for user
   createUser(
     username: String!,
     password: String!,
@@ -30,46 +29,35 @@ type Mutation {
     last_name: String,
     bio: String
   ): String
-  # Return token for user
-  # DONE
 
+  # Return token for user
   loginUser(
     username: String!,
     password: String!
   ): String
-  # Return token for user
-  # DONE
 
-  followUser(_id: ID!): User # user = The username of the user that you want to follow.
   # Makes the authenticated user follow the specified user.
-  # DONE
+  followUser(_id: ID!): User
 
-  stopFollowingUser(_id: ID!): User # userID = username OR user ID
   # Makes the authenticated user unfollow the specified user.
-  # DONE
+  stopFollowingUser(_id: ID!): User # userID = username OR user ID
 
-  followBoard(_id: ID!): Board # board format = <username>/<board_name>.
   # Makes the authenticated user follow the specified board.
-  # DONE
+  followBoard(_id: ID!): Board
 
-  stopFollowingBoard(_id: ID!): Board
   # Makes the authenticated user unfollow the specified board.
-  # DONE
+  stopFollowingBoard(_id: ID!): Board
 
-  createBoard(name: String!, description: String): Board
   # Creates a board for the authenticated user.
-  # DONE
+  createBoard(name: String!, description: String): Board
 
+  # Changes the chosen board’s name and/or description.
   updateBoard(
     _id: ID!,     # The board you want to edit in the format <username>/<board_name>
     name: String,       # new Board name
     description: String # new board description
   ): Board
-  # Changes the chosen board’s name and/or description.
-  # The default response returns the ID, URL and name of the edited board.
-  # DONE
 
-  deleteBoard(_id: ID!): Board
   # Deletes the specified board. This action is permanent and cannot be undone.
-  # DONE
+  deleteBoard(_id: ID!): Board
 }
