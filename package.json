@@ -7,6 +7,7 @@
     "e2e": "jest --config=e2e/jest-e2e.json --forceExit --useStderr --bail",
     "test": "jest",
     "compile": "tsc",
+    "coverage": "jest --coverage",
     "start:prod": "node ./dist/src/server.js",
     "script": "m2gql -d mongodb://localhost:25555/PinterestDB -s fullPinterest",
     "precommit": "pretty-quick --staged",
