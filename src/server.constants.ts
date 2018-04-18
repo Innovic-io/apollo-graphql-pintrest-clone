@@ -20,9 +20,10 @@ export const DB_VOLUME_LOCATION = process.env.DB_VOLUME_LOCATION;
 export const DATABASE_URI = `mongodb://mongo:${DB_PORT}/${DB_NAME}`;
 export const TEST_DATABASE_URI = `mongodb://localhost:${DB_PORT}/${DB_TESTING}`;
 
-export const privateKey = '?TM!A%ibGacO4->l:Q`YIXh/N!c,45Kh>V1#eg6fbJWAg~sg3Mo):}Gx$uW_|TO';
+export const privateKey =
+  '?TM!A%ibGacO4->l:Q`YIXh/N!c,45Kh>V1#eg6fbJWAg~sg3Mo):}Gx$uW_|TO';
 
-export const  GRAPHQL_MIDDLEWARE = new DynamicMiddleware();
+export const GRAPHQL_MIDDLEWARE = new DynamicMiddleware();
 
 export const FULL_PINTEREST = 'fullPinterest';
 
@@ -31,5 +32,5 @@ export let AVAILABLE_SERVICES = {
   UserService: null as IUserService,
   PinService: null as IPinService,
   BoardService: null as IBoardService,
-  DatabaseService: null as Db,
+  DatabaseService: null as Db
 };

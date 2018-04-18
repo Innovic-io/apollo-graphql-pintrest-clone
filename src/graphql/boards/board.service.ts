@@ -3,10 +3,18 @@ import { Observable } from 'rxjs/Observable';
 
 import { IBoard, IBoardService } from './board.interface';
 import {
-  addCreator, createObjectID, findByElementKey, getServiceById, removeCreator,
+  addCreator,
+  createObjectID,
+  findByElementKey,
+  getServiceById,
+  removeCreator
 } from '../../common/helper.functions';
 import {
-  ALREADY_EXIST_ERROR, DOES_NOT_EXIST, PERMISSION_DENIED, SERVICE_ENUM, USERS_ELEMENT,
+  ALREADY_EXIST_ERROR,
+  DOES_NOT_EXIST,
+  PERMISSION_DENIED,
+  SERVICE_ENUM,
+  USERS_ELEMENT
 } from '../../common/common.constants';
 import { IUser } from '../user/user.interface';
 import { Service } from '../../decorators/service.decorator';
@@ -17,17 +25,21 @@ import { AVAILABLE_SERVICES } from '../../server.constants';
  */
 @Service()
 export default class BoardService implements IBoardService {
-
   private collectionName = SERVICE_ENUM.BOARDS;
   private database: Collection;
 
   constructor() {
-    this.database = AVAILABLE_SERVICES.DatabaseService.collection(this.collectionName);
+    this.database = AVAILABLE_SERVICES.DatabaseService.collection(
+      this.collectionName
+    );
   }
 
   async getByID(boardID: string | ObjectID): Promise<IBoard> {
-
-    return await findByElementKey<IBoard>(this.database, '_id', createObjectID(boardID));
+    return await findByElementKey<IBoard>(
+      this.database,
+      '_id',
+      createObjectID(boardID)
+    );
   }
 
   /**
@@ -37,11 +49,15 @@ export default class BoardService implements IBoardService {
    * @param {ObjectID} followerID
    * @returns {Promise<IBoard>}
    */
-  async startFollowingBoard(_id: string | ObjectID, followerID: ObjectID): Promise<IBoard> {
-
-    const result = await this.database.findOneAndUpdate({_id: createObjectID(_id)},
+  async startFollowingBoard(
+    _id: string | ObjectID,
+    followerID: ObjectID
+  ): Promise<IBoard> {
+    const result = await this.database.findOneAndUpdate(
+      { _id: createObjectID(_id) },
       { $addToSet: { followers: followerID } },
-      { returnOriginal: false });
+      { returnOriginal: false }
+    );
 
     return result.value;
   }
@@ -53,26 +69,32 @@ export default class BoardService implements IBoardService {
    * @returns {Promise<IBoard[]>}
    */
   async getBoardFollowing(_id: ObjectID): Promise<IBoard[]> {
-
-    const result = await this.database.find<IBoard>({ followers: { $in: [ _id ] } });
+    const result = await this.database.find<IBoard>({
+      followers: { $in: [_id] }
+    });
 
     return result.toArray();
   }
 
-  async stopFollowingBoard(_id: string | ObjectID, creatorID: ObjectID): Promise<IBoard> {
-
-    const result = await this.database.findOneAndUpdate({_id: createObjectID(_id)},
-      { $pull: { followers: {$in: [creatorID] } } },
+  async stopFollowingBoard(
+    _id: string | ObjectID,
+    creatorID: ObjectID
+  ): Promise<IBoard> {
+    const result = await this.database.findOneAndUpdate(
+      { _id: createObjectID(_id) },
+      { $pull: { followers: { $in: [creatorID] } } }
     );
 
     return result.value;
   }
 
-  async createBoard(newBoard: IBoard, creatorID: ObjectID | string): Promise<IBoard> {
-
+  async createBoard(
+    newBoard: IBoard,
+    creatorID: ObjectID | string
+  ): Promise<IBoard> {
     creatorID = createObjectID(creatorID);
 
-    if (!await getServiceById(creatorID, SERVICE_ENUM.USERS)) {
+    if (!(await getServiceById(creatorID, SERVICE_ENUM.USERS))) {
       throw new Error(DOES_NOT_EXIST('Creator '));
     }
 
@@ -85,44 +107,51 @@ export default class BoardService implements IBoardService {
       creator: creatorID,
       followers: [creatorID],
       collaborators: [creatorID],
-      created_at: newBoard.created_at || new Date(),
+      created_at: newBoard.created_at || new Date()
     };
 
     const inserted = await this.database.insertOne(insertBoard);
-    const [ resultingObject ]: IBoard[] = inserted.ops;
+    const [resultingObject]: IBoard[] = inserted.ops;
 
-    await addCreator(resultingObject.creator, resultingObject._id, USERS_ELEMENT.BOARDS);
+    await addCreator(
+      resultingObject.creator,
+      resultingObject._id,
+      USERS_ELEMENT.BOARDS
+    );
 
     return resultingObject;
   }
 
   async updateBoard(sendBoard: IBoard, creatorID: ObjectID) {
+    await this.checkBoardPermission(sendBoard._id, creatorID);
 
-      await this.checkBoardPermission(sendBoard._id, creatorID);
+    const exist = await findByElementKey<IBoard>(
+      this.database,
+      '_id',
+      createObjectID(sendBoard._id)
+    );
 
-      const exist = await findByElementKey<IBoard>(this.database, '_id', createObjectID(sendBoard._id));
+    if (!exist) {
+      throw new Error(DOES_NOT_EXIST('Board with sent id '));
+    }
 
-      if (!exist) {
-        throw new Error(DOES_NOT_EXIST('Board with sent id '));
-      }
+    delete sendBoard._id;
 
-      delete sendBoard._id;
+    const result = await this.database.findOneAndUpdate(
+      { _id: exist._id },
+      { $set: sendBoard },
+      { returnOriginal: false }
+    );
 
-      const result = await this.database
-        .findOneAndUpdate({_id: exist._id},
-          { $set: sendBoard },
-          { returnOriginal: false },
-        );
-
-      return result.value;
+    return result.value;
   }
 
   async deleteBoard(_id: ObjectID | string, creatorID: ObjectID) {
-
     await this.checkBoardPermission(_id, creatorID);
 
-    const result = await this.database
-      .findOneAndDelete({_id: createObjectID(_id)});
+    const result = await this.database.findOneAndDelete({
+      _id: createObjectID(_id)
+    });
 
     await removeCreator(creatorID, createObjectID(_id), USERS_ELEMENT.BOARDS);
 
@@ -137,9 +166,11 @@ export default class BoardService implements IBoardService {
    * @returns {Promise<{valid: boolean; creator: ObjectID}>}
    */
   async checkBoardPermission(_id, creator) {
-
-    const result = await findByElementKey<IBoard>(this.database,
-      '_id', createObjectID(_id));
+    const result = await findByElementKey<IBoard>(
+      this.database,
+      '_id',
+      createObjectID(_id)
+    );
 
     if (!result.creator.equals(creator)) {
       throw new Error(PERMISSION_DENIED);
@@ -147,7 +178,7 @@ export default class BoardService implements IBoardService {
 
     return {
       valid: true,
-      creator,
+      creator
     };
   }
 
@@ -159,13 +190,14 @@ export default class BoardService implements IBoardService {
    * @returns {Promise<IUser[]>}
    */
   async getUsers(_id: ObjectID, users: ObjectID[]): Promise<IUser[]> {
-
     if (!users) {
       return null;
     }
 
-    const result = users
-      .map( async (userIndex) => await getServiceById<IUser>(userIndex, SERVICE_ENUM.USERS));
+    const result = users.map(
+      async userIndex =>
+        await getServiceById<IUser>(userIndex, SERVICE_ENUM.USERS)
+    );
 
     return await Observable.forkJoin(result).toPromise();
   }

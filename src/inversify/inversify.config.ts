@@ -15,7 +15,9 @@ import ScalarsResolver from '../graphql/scalars/scalars.resolver';
 import { IResolver } from '../common/common.constants';
 
 const rootContainer = new Container();
-rootContainer.bind<IDatabaseService>(SERVICE_TYPES.DatabaseService).to(DatabaseService);
+rootContainer
+  .bind<IDatabaseService>(SERVICE_TYPES.DatabaseService)
+  .to(DatabaseService);
 rootContainer.bind<IBoardService>(SERVICE_TYPES.BoardService).to(BoardService);
 rootContainer.bind<IPinService>(SERVICE_TYPES.PinService).to(PinService);
 rootContainer.bind<IUserService>(SERVICE_TYPES.UserService).to(UserService);
@@ -23,6 +25,8 @@ rootContainer.bind<IUserService>(SERVICE_TYPES.UserService).to(UserService);
 rootContainer.bind<IResolver>(RESOLVER_TYPES.UserResolver).to(UserResolver);
 rootContainer.bind<IResolver>(RESOLVER_TYPES.PinResolver).to(PinResolver);
 rootContainer.bind<IResolver>(RESOLVER_TYPES.BoardResolver).to(BoardResolver);
-rootContainer.bind<IResolver>(RESOLVER_TYPES.ScalarResolver).to(ScalarsResolver);
+rootContainer
+  .bind<IResolver>(RESOLVER_TYPES.ScalarResolver)
+  .to(ScalarsResolver);
 
 export { rootContainer };

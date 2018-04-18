@@ -132,16 +132,13 @@ export const initializeResolvers = () => {
 
 export const changeSchema = async () => {
   initializeResolvers();
-  return graphqlExpress(
-    async (req: any) => {
-
-      const schema = await makeSchemaOnFly(req.headers.company, RESOLVERS);
-      return Object.assign({
-        schema,
-        context: req.user as IAuthorization
-      });
-    },
-  );
+  return graphqlExpress(async (req: any) => {
+    const schema = await makeSchemaOnFly(req.headers.company, RESOLVERS);
+    return Object.assign({
+      schema,
+      context: req.user as IAuthorization
+    });
+  });
 };
 
 const makeSchemaOnFly = async (companyID, resolvers) => {

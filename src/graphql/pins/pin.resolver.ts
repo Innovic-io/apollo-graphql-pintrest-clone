@@ -4,18 +4,26 @@ import { IAuthorization } from '../../authorization/authorization.interface';
 import { getServiceById } from '../../common/helper.functions';
 import { IResolver, SERVICE_ENUM } from '../../common/common.constants';
 import { IPin, IPinService } from './pin.interface';
-import { PIN_CHANGED_TOPIC, pubsub } from '../subscription/subscription.resolver';
+import {
+  PIN_CHANGED_TOPIC,
+  pubsub
+} from '../subscription/subscription.resolver';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
-import { Mutation, Query, ResolveProperty, Resolver, Subscription } from '../../decorators/resolver.decorator';
+import {
+  Mutation,
+  Query,
+  ResolveProperty,
+  Resolver,
+  Subscription
+} from '../../decorators/resolver.decorator';
 
 let pinService;
 
 // if something need to be verified, Authorization is stored in context
 @Resolver('Pin')
 export default class PinResolver implements IResolver {
-
   constructor(
-    @inject(SERVICE_TYPES.PinService) injectedPinService: IPinService,
+    @inject(SERVICE_TYPES.PinService) injectedPinService: IPinService
   ) {
     pinService = injectedPinService;
   }
@@ -27,9 +35,8 @@ export default class PinResolver implements IResolver {
 
   @Query()
   async getAllPins() {
-
     const allUsers = await pinService.getAllPins();
-    const [ single ] = allUsers;
+    const [single] = allUsers;
     pubsub.publish(PIN_CHANGED_TOPIC, { pinChanged: single.name });
     return allUsers;
   }
@@ -82,7 +89,7 @@ export default class PinResolver implements IResolver {
   @Subscription()
   pinChanged() {
     return {
-      subscribe: () => pubsub.asyncIterator(PIN_CHANGED_TOPIC),
+      subscribe: () => pubsub.asyncIterator(PIN_CHANGED_TOPIC)
     };
   }
 
