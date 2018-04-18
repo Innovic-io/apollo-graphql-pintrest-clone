@@ -1,47 +1,42 @@
 type Mutation {
-
   createPin(
     name: String!
-    board: ID!, # In the format <username>/<board_name>
-    note: String!,
-    link:String,
-    image: ImageScalar,        # image we want to upload via multipart form data
-    image_url: String    # link to image we want to Pin
+    board: ID! # In the format <username>/<board_name>
+    note: String!
+    link: String
+    image: ImageScalar # image we want to upload via multipart form data
+    image_url: String # link to image we want to Pin
     image_base64: String # Base64 encoded image
   ): Pin
   # image || image_url || image_base64 mandatory
 
   updatePin(
-    _id: ID!, # ID of pin to change
-    board: ID, # The board you want to move the Pin to, in the format <username>/<board_name>.
-    note: String, # The new Pin description.
+    _id: ID! # ID of pin to change
+    board: ID # The board you want to move the Pin to, in the format <username>/<board_name>.
+    note: String # The new Pin description.
     link: String # The new Pin link.
   ): Pin
 
-  deletePin( _id:ID!): Pin
+  deletePin(_id: ID!): Pin
 
   # Return token for user
   createUser(
-    username: String!,
-    password: String!,
-    created_at: Date,
-    first_name: String,
-    last_name: String,
+    username: String!
+    password: String!
+    created_at: Date
+    first_name: String
+    last_name: String
     bio: String
   ): String
 
   # Return token for user
-  loginUser(
-    username: String!,
-    password: String!
-  ): String
+  loginUser(username: String!, password: String!): String
 
   # Makes the authenticated user follow the specified user.
   followUser(_id: ID!): User
 
   # Makes the authenticated user unfollow the specified user.
   stopFollowingUser(_id: ID!): User # userID = username OR user ID
-
   # Makes the authenticated user follow the specified board.
   followBoard(_id: ID!): Board
 
@@ -53,8 +48,8 @@ type Mutation {
 
   # Changes the chosen board’s name and/or description.
   updateBoard(
-    _id: ID!,     # The board you want to edit in the format <username>/<board_name>
-    name: String,       # new Board name
+    _id: ID! # The board you want to edit in the format <username>/<board_name>
+    name: String # new Board name
     description: String # new board description
   ): Board
 

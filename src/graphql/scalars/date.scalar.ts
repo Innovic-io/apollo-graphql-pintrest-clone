@@ -1,9 +1,8 @@
 import { GraphQLScalarType, Kind } from 'graphql';
 
-const parseValue = (value) =>  new Date(value);
-const serialize = (value) => new Date(value);
-const parseLiteral = (ast) => {
-
+const parseValue = value => new Date(value);
+const serialize = value => new Date(value);
+const parseLiteral = ast => {
   if (ast.kind === Kind.INT) {
     return parseInt(ast.value, 10); // ast value is always in string format
   }
@@ -20,7 +19,7 @@ const DateType = new GraphQLScalarType({
   description: 'Date custom scalar type',
   parseValue,
   serialize,
-  parseLiteral,
+  parseLiteral
 });
 
 export default DateType;

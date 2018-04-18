@@ -1,48 +1,73 @@
 ### implemented:
+
 #### Pin
+
 ###### Mutation
-- createPin
-- updatePin
-- deletePin
+
+* createPin
+* updatePin
+* deletePin
+
 ###### Query
-- getPin
-- getUserPins
+
+* getPin
+* getUserPins
+
 #### User
+
 ###### Mutation
-- createUser
-- loginUser
+
+* createUser
+* loginUser
+
 ###### Query
-- getUser
+
+* getUser
 
 #### Board
+
 ###### Mutation
-- createBoard
-- deleteBoard
+
+* createBoard
+* deleteBoard
+
 ###### Query
-- getBoard
+
+* getBoard
 
 ### Left to implement
+
 #### Pin
+
 ###### Query
-- searchPins (not yet implemented)
-- getPinsFromBoard
+
+* searchPins (not yet implemented)
+* getPinsFromBoard
 
 #### Board
+
 ###### Mutation
-- followBoard
-- updateBoard
-- stopFollowingBoard
+
+* followBoard
+* updateBoard
+* stopFollowingBoard
+
 ###### Query
-- getUserBoards
-- searchBoard ***(not yet implemented)***
-- getBoardSuggestion ***(not yet implemented)***
-- getBoardFollowing
+
+* getUserBoards
+* searchBoard **_(not yet implemented)_**
+* getBoardSuggestion **_(not yet implemented)_**
+* getBoardFollowing
 
 #### User
+
 ###### Mutation
-- followUser
-- stopFollowingUser
+
+* followUser
+* stopFollowingUser
+
 ###### Query
-- getAllUsers
-- getUserFollowers
-- getUserFollowings
+
+* getAllUsers
+* getUserFollowers
+* getUserFollowings

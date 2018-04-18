@@ -1,7 +1,14 @@
 import { MongoClient } from 'mongodb';
 import { MongodHelper } from 'mongodb-prebuilt';
 
-import { DB_NAME, DATABASE_URI, TEST_DATABASE_URI, DB_TESTING , PORT, DB_VOLUME_LOCATION} from '../server.constants';
+import {
+  DB_NAME,
+  DATABASE_URI,
+  TEST_DATABASE_URI,
+  DB_TESTING,
+  PORT,
+  DB_VOLUME_LOCATION
+} from '../server.constants';
 import { IDatabase, IDatabaseService } from './interfaces/database.interface';
 import { Service } from '../decorators/service.decorator';
 
@@ -13,13 +20,12 @@ export class DatabaseService implements IDatabaseService {
     let connection;
 
     if (process.env.NODE_ENV === 'test') {
-
-    //  const mongoHelper = new MongodHelper(
-    //    [
-    //      '--dbpath', `${DB_VOLUME_LOCATION}`,
-    //      '--port', PORT,
-    //      '--storageEngine', 'inMemory'
-    //    ]);
+      //  const mongoHelper = new MongodHelper(
+      //    [
+      //      '--dbpath', `${DB_VOLUME_LOCATION}`,
+      //      '--port', PORT,
+      //      '--storageEngine', 'inMemory'
+      //    ]);
       // @TODO
       // runServer, but how get database out of it?
       // await mongoHelper.mongoBin.run());

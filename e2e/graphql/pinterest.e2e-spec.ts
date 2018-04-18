@@ -223,7 +223,7 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    const resultingPin = resource.body.data[ command ];
+    const resultingPin = resource.body.data[command];
 
     expect(resultingPin.creator.username).toEqual(userObject.username);
     expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
@@ -252,7 +252,7 @@ describe('Pinterest ', () => {
       .set(header)
       .expect(200);
 
-    const [ resultingPin ] = resource.body.data[ command ];
+    const [resultingPin] = resource.body.data[command];
 
     expect(resultingPin.creator.username).toEqual(userObject.username);
     expect(resultingPin.creator.first_name).toEqual(userObject.first_name);

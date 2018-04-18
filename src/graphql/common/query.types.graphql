@@ -8,8 +8,7 @@ type Query {
   # Not yet implemented
   searchPins(query: String): Pin
 
-  getPinsFromBoard(boardID: ID!,
-    cursor: String): [Pin]
+  getPinsFromBoard(boardID: ID!, cursor: String): [Pin]
 
   getUser: User
 

@@ -2,6 +2,7 @@ scalar Date
 
 # Not yet supported
 scalar ImageScalar
+
 # to return Image
 
 type Video {
