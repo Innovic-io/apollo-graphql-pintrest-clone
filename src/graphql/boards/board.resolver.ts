@@ -5,15 +5,20 @@ import { IBoard, IBoardService } from './board.interface';
 import { getServiceById } from '../../common/helper.functions';
 import { IResolver, SERVICE_ENUM } from '../../common/common.constants';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
-import { Resolver, Query, Mutation, ResolveProperty } from '../../decorators/resolver.decorator';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  ResolveProperty
+} from '../../decorators/resolver.decorator';
 
 let boardService;
 
 @Resolver('Board')
 export default class BoardResolver implements IResolver {
-
-  constructor( @inject(SERVICE_TYPES.BoardService) injectedBoardService: IBoardService ) {
-
+  constructor(
+    @inject(SERVICE_TYPES.BoardService) injectedBoardService: IBoardService
+  ) {
     boardService = injectedBoardService;
   }
 
@@ -24,7 +29,6 @@ export default class BoardResolver implements IResolver {
 
   @Query()
   async getBoardFollowing(parent, args, context: IAuthorization) {
-
     return await boardService.getBoardFollowing(context._id);
   }
 
@@ -60,7 +64,6 @@ export default class BoardResolver implements IResolver {
 
   @ResolveProperty()
   async followers(boards: IBoard) {
-
     if (!boards.followers) {
       return null;
     }
@@ -70,13 +73,11 @@ export default class BoardResolver implements IResolver {
 
   @ResolveProperty()
   async creator(boards: IBoard) {
-
     return await getServiceById(boards.creator, SERVICE_ENUM.USERS);
   }
 
   @ResolveProperty()
   async collaborators(boards: IBoard) {
-
     if (!boards.collaborators) {
       return null;
     }

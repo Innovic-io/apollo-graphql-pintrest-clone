@@ -3,11 +3,20 @@ import * as bodyParser from 'body-parser';
 import * as request from 'supertest';
 import 'jest';
 
-import { API_ENDPOINT, FULL_PINTEREST, GRAPHQL_MIDDLEWARE, AVAILABLE_SERVICES } from '../../src/server.constants';
+import {
+  API_ENDPOINT,
+  FULL_PINTEREST,
+  GRAPHQL_MIDDLEWARE,
+  AVAILABLE_SERVICES
+} from '../../src/server.constants';
 import { IAuthorization } from '../../src/authorization/authorization.interface';
 import AuthorizationMiddleware from '../../src/authorization/authorization.middleware';
 import { decodeToken } from '../../src/common/cryptography';
-import {changeSchema, getAllServices, makeString} from '../../src/common/helper.functions';
+import {
+  changeSchema,
+  getAllServices,
+  makeString
+} from '../../src/common/helper.functions';
 import { IUser } from '../../src/graphql/user/user.interface';
 import { IPin } from '../../src/graphql/pins/pin.interface';
 import { IBoard } from '../../src/graphql/boards/board.interface';
@@ -15,24 +24,22 @@ import { IBoard } from '../../src/graphql/boards/board.interface';
 jest.setTimeout(10000);
 
 describe('Pinterest ', () => {
-
   let db;
 
   const server = express()
-    .use(bodyParser.json(),
-      (req, res, next) => next()
-    )
-    .post(API_ENDPOINT,
-      AuthorizationMiddleware,
-      GRAPHQL_MIDDLEWARE.handler(),
-    );
+    .use(bodyParser.json(), (req, res, next) => next())
+    .post(API_ENDPOINT, AuthorizationMiddleware, GRAPHQL_MIDDLEWARE.handler());
 
   let token;
   let boardID;
   let pinID;
 
   const loginUserObject = { username: 'Username', password: 'password' };
-  const userObject = { ...loginUserObject, first_name: 'Mirko', last_name: 'Markovic' };
+  const userObject = {
+    ...loginUserObject,
+    first_name: 'Mirko',
+    last_name: 'Markovic'
+  };
 
   const boardObject = { name: 'Unique Name', description: 'Board description' };
   const pinObject = { name: 'Unique name', note: 'Note for this pin' };
@@ -40,17 +47,16 @@ describe('Pinterest ', () => {
   let header = { authorization: '', company: FULL_PINTEREST };
   // @ts-ignore
   beforeAll(async () => {
-await getAllServices();    const resultingSchema = await changeSchema();
+    await getAllServices();
+    const resultingSchema = await changeSchema();
     GRAPHQL_MIDDLEWARE.replace(resultingSchema);
 
     db = AVAILABLE_SERVICES.DatabaseService;
 
-      db.dropDatabase();
-    }
-  );
+    db.dropDatabase();
+  });
 
   afterAll(() => {
-
     db.dropDatabase();
   });
 
@@ -64,12 +70,12 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .post(API_ENDPOINT)
       .send(body)
       .expect(200);
-    token = resource.body.data[ command ];
+    token = resource.body.data[command];
 
-    expect(typeof resource.body.data[ command ]).toBe('string');
+    expect(typeof resource.body.data[command]).toBe('string');
   });
 
-  it('login user', async (done) => {
+  it('login user', async done => {
     const command = 'loginUser';
     const body = {
       query: `mutation {${command}(${makeString(loginUserObject)})}`
@@ -80,15 +86,17 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .send(body)
       .expect(200);
 
-    const decodedLogin = decodeToken(resource.body.data[ command ]) as IAuthorization;
-    const decodedSignup = decodeToken(token)as IAuthorization;
+    const decodedLogin = decodeToken(
+      resource.body.data[command]
+    ) as IAuthorization;
+    const decodedSignup = decodeToken(token) as IAuthorization;
 
-    expect(typeof resource.body.data[ command ]).toBe('string');
+    expect(typeof resource.body.data[command]).toBe('string');
     expect(decodedLogin._id).toEqual(decodedSignup._id);
     expect(decodedLogin.exp).toBeCloseTo(decodedLogin.exp);
 
     header.authorization = `Bearer ${token}`;
-    done()
+    done();
   });
 
   it('should create board', async () => {
@@ -104,9 +112,9 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .set(header)
       .expect(200);
 
-    boardID = resource.body.data[ command ]._id;
+    boardID = resource.body.data[command]._id;
 
-    const resultingBoard = resource.body.data[ command ];
+    const resultingBoard = resource.body.data[command];
 
     expect(resultingBoard.creator.username).toEqual(userObject.username);
     expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
@@ -116,8 +124,9 @@ await getAllServices();    const resultingSchema = await changeSchema();
   it('should create Pin', async () => {
     const command = 'createPin';
     const body = {
-      query:
-        `mutation { ${command}(board: "${boardID}", ${makeString(pinObject)}) 
+      query: `mutation { ${command}(board: "${boardID}", ${makeString(
+        pinObject
+      )}) 
           { 
             _id name created_at 
             board {  created_at description name} 
@@ -132,8 +141,8 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .set(header)
       .expect(200);
 
-    pinID = resource.body.data[ command ]._id;
-    const resultingPin = resource.body.data[ command ];
+    pinID = resource.body.data[command]._id;
+    const resultingPin = resource.body.data[command];
 
     expect(resultingPin.creator.username).toEqual(userObject.username);
     expect(resultingPin.name).toEqual(pinObject.name);
@@ -158,7 +167,7 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .set(header)
       .expect(200);
 
-    const resultingBoard = resource.body.data[ command ];
+    const resultingBoard = resource.body.data[command];
 
     expect(resultingBoard.creator.username).toEqual(userObject.username);
     expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
@@ -184,66 +193,7 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .set(header)
       .expect(200);
 
-    const resultingPin = resource.body.data[ command ];
-
-    expect(resultingPin.creator.username).toEqual(userObject.username);
-    expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingPin.name).toEqual(pinObject.name);
-    expect(resultingPin.board.name).toEqual(boardObject.name);
-    expect(resultingPin.board._id).toEqual(boardID);
-  });
-
-  it('should update pin by ID', async () => {
-    const command = 'updatePin';
-    const note = 'some New note';
-
-    const body = {
-      query: `mutation { ${command}(_id: "${pinID}",
-      note: "${note}") 
-        { 
-          _id name note
-          creator { username first_name } 
-          board { _id name }
-        } 
-      }`
-    };
-
-    const resource = await request(server)
-      .post(API_ENDPOINT)
-      .send(body)
-      .set(header)
-      .expect(200);
-
-    const resultingPin = resource.body.data[ command ];
-
-    expect(resultingPin.creator.username).toEqual(userObject.username);
-    expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingPin.name).toEqual(pinObject.name);
-    expect(resultingPin.board.name).toEqual(boardObject.name);
-    expect(resultingPin.board._id).toEqual(boardID);
-    expect(resultingPin.note).toEqual(note);
-  });
-
-  it('should get user pins', async () => {
-    const command = 'getUserPins';
-
-    const body = {
-      query: `{ ${command} 
-        { 
-          _id name
-          creator { username first_name } 
-          board { _id name }
-        } 
-      }`
-    };
-
-    const resource = await request(server)
-      .post(API_ENDPOINT)
-      .send(body)
-      .set(header)
-      .expect(200);
-
-    const [ resultingPin ] = resource.body.data[ command ];
+    const resultingPin = resource.body.data[command];
 
     expect(resultingPin.creator.username).toEqual(userObject.username);
     expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
@@ -271,9 +221,9 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .set(header)
       .expect(200);
 
-    const resultingUser = resource.body.data[ command ];
-    const [ resultPin ]: IPin[] = resultingUser.pins;
-    const [ resultBoard ]: IBoard[] = resultingUser.boards;
+    const resultingUser = resource.body.data[command];
+    const [resultPin]: IPin[] = resultingUser.pins;
+    const [resultBoard]: IBoard[] = resultingUser.boards;
 
     expect(resultingUser.pins.length).toEqual(1);
     expect(resultPin.name).toEqual(pinObject.name);
@@ -304,7 +254,7 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .set(header)
       .expect(200);
 
-    const resultingPin = resource.body.data[ command ];
+    const resultingPin = resource.body.data[command];
     const creator: IUser = resultingPin.creator;
     const board: IBoard = resultingPin.board;
 
@@ -334,7 +284,7 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .set(header)
       .expect(200);
 
-    const resultingBoard = resource.body.data[ command ];
+    const resultingBoard = resource.body.data[command];
     const creator: IUser = resultingBoard.creator;
 
     expect(resultingBoard.name).toEqual(boardObject.name);
@@ -362,7 +312,7 @@ await getAllServices();    const resultingSchema = await changeSchema();
       .set(header)
       .expect(200);
 
-    const resultingUser = resource.body.data[ command ];
+    const resultingUser = resource.body.data[command];
 
     expect(resultingUser.pins).toBeNull();
     expect(resultingUser.boards).toBeNull();

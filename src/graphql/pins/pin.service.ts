@@ -5,16 +5,16 @@ import {
   createObjectID,
   findByElementKey,
   getServiceById,
-  removeCreator,
+  removeCreator
 } from '../../common/helper.functions';
 import {
   DOES_NOT_EXIST,
   ALREADY_EXIST_ERROR,
   PERMISSION_DENIED,
-  SERVICE_ENUM,
-  USERS_ELEMENT,
+  SERVICE_ENUM
 } from '../../common/common.constants';
 import { IPin, IPinService } from './pin.interface';
+import { USERS_ELEMENT } from '../../common/common.constants';
 import { Service } from '../../decorators/service.decorator';
 import { AVAILABLE_SERVICES } from '../../server.constants';
 
@@ -27,14 +27,16 @@ export default class PinService implements IPinService {
   private database: Collection;
 
   constructor() {
-      this.database = AVAILABLE_SERVICES.DatabaseService.collection(this.collectionName);
+    this.database = AVAILABLE_SERVICES.DatabaseService.collection(
+      this.collectionName
+    );
   }
 
   async getByID(pinID: ObjectID | string): Promise<IPin> {
     return await findByElementKey<IPin>(
       this.database,
       '_id',
-      createObjectID(pinID),
+      createObjectID(pinID)
     );
   }
 
@@ -46,7 +48,7 @@ export default class PinService implements IPinService {
    */
   async getUserPins(_id: string | ObjectID): Promise<IPin[]> {
     const result = await this.database.find<IPin>({
-      creator: createObjectID(_id),
+      creator: createObjectID(_id)
     });
 
     return result.toArray();
@@ -84,17 +86,17 @@ export default class PinService implements IPinService {
       ...newPin,
       creator,
       created_at: newPin.created_at || new Date(),
-      board: createObjectID(newPin.board),
+      board: createObjectID(newPin.board)
     };
 
     const inserted = await this.database.insertOne(insertPin);
 
-    const [ resultingObject ]: IPin[] = inserted.ops;
+    const [resultingObject]: IPin[] = inserted.ops;
 
     await addCreator(
       resultingObject.creator,
       resultingObject._id,
-      USERS_ELEMENT.PINS,
+      USERS_ELEMENT.PINS
     );
 
     return resultingObject;
@@ -113,7 +115,7 @@ export default class PinService implements IPinService {
     const exist = await findByElementKey<IPin>(
       this.database,
       '_id',
-      createObjectID(sentPin._id),
+      createObjectID(sentPin._id)
     );
 
     if (!exist) {
@@ -129,7 +131,7 @@ export default class PinService implements IPinService {
     const result = await this.database.findOneAndUpdate(
       { _id: exist._id },
       { $set: sentPin },
-      { returnOriginal: false },
+      { returnOriginal: false }
     );
 
     return result.value;
@@ -139,7 +141,7 @@ export default class PinService implements IPinService {
     await this.checkPinPermission(_id, creatorID);
 
     const result = await this.database.findOneAndDelete({
-      _id: createObjectID(_id),
+      _id: createObjectID(_id)
     });
 
     await removeCreator(creatorID, createObjectID(_id), USERS_ELEMENT.PINS);
@@ -156,11 +158,11 @@ export default class PinService implements IPinService {
    */
   async getPinsFromBoard(
     boardID: string | ObjectID,
-    creator: ObjectID,
+    creator: ObjectID
   ): Promise<IPin[]> {
     const result = await this.database.find<IPin>({
       creator,
-      board: createObjectID(boardID),
+      board: createObjectID(boardID)
     });
 
     return result.toArray();
@@ -177,7 +179,7 @@ export default class PinService implements IPinService {
     const result = await findByElementKey<IPin>(
       this.database,
       '_id',
-      createObjectID(_id),
+      createObjectID(_id)
     );
 
     if (!result.creator.equals(creator)) {
@@ -186,7 +188,7 @@ export default class PinService implements IPinService {
 
     return {
       valid: true,
-      creator,
+      creator
     };
   }
 }
