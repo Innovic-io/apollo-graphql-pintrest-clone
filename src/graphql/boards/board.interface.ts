@@ -30,6 +30,8 @@ export interface IBoardService {
   checkBoardPermission(_id: ObjectID | string, creator: ObjectID);
   getUsers(_id: ObjectID, users: ObjectID[]): Promise<IUser[]>;
   getCreators(_id: ObjectID): Promise<IBoard[]>;
+
+  getBoardFollowers(objectID: ObjectID);
 }
 
 export interface IBoardResolver {

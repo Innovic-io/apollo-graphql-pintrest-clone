@@ -2,7 +2,7 @@ import { inject } from 'inversify';
 
 import { IAuthorization } from '../../authorization/authorization.interface';
 import { IBoard, IBoardService } from './board.interface';
-import { getServiceById } from '../../common/helper.functions';
+import { createObjectID, getServiceById } from "../../common/helper.functions";
 import { IResolver, SERVICE_ENUM } from '../../common/common.constants';
 import { SERVICE_TYPES } from '../../inversify/inversify.types';
 import {
@@ -12,7 +12,7 @@ import {
   ResolveProperty
 } from '../../decorators/resolver.decorator';
 
-let boardService;
+let boardService: IBoardService;
 
 @Resolver('Board')
 export default class BoardResolver implements IResolver {
@@ -30,6 +30,11 @@ export default class BoardResolver implements IResolver {
   @Query()
   async getBoardFollowing(parent, args, context: IAuthorization) {
     return await boardService.getBoardFollowing(context._id);
+  }
+
+  @Query()
+  async getBoardFollowers(parent, { boardID }, context: IAuthorization) {
+    return await boardService.getBoardFollowers(createObjectID(boardID));
   }
 
   @Query()

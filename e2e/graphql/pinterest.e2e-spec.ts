@@ -17,35 +17,25 @@ import {
   getAllServices,
   makeString
 } from '../../src/common/helper.functions';
-import { IUser } from '../../src/graphql/user/user.interface';
 import { IPin } from '../../src/graphql/pins/pin.interface';
 import { IBoard } from '../../src/graphql/boards/board.interface';
+import * as helpers  from './e2e.tests.helper';
 
 jest.setTimeout(10000);
 
 describe('Pinterest ', () => {
   let db;
 
+  let token;
+  let secondToken;
+  let boardID;
+  let pinID;
+  let userID;
+
   const server = express()
     .use(bodyParser.json(), (req, res, next) => next())
     .post(API_ENDPOINT, AuthorizationMiddleware, GRAPHQL_MIDDLEWARE.handler());
 
-  let token;
-  let boardID;
-  let pinID;
-
-  const loginUserObject = { username: 'Username', password: 'password' };
-  const userObject = {
-    ...loginUserObject,
-    first_name: 'Mirko',
-    last_name: 'Markovic'
-  };
-
-  const boardObject = { name: 'Unique Name', description: 'Board description' };
-  const pinObject = { name: 'Unique name', note: 'Note for this pin' };
-
-  let header = { authorization: '', company: FULL_PINTEREST };
-  // @ts-ignore
   beforeAll(async () => {
     await getAllServices();
     const resultingSchema = await changeSchema();
@@ -63,7 +53,7 @@ describe('Pinterest ', () => {
   it('should create User', async () => {
     const command = 'createUser';
     const body = {
-      query: `mutation {${command}(${makeString(userObject)})}`
+      query: `mutation {${command}(${makeString(helpers.userObject)})}`
     };
 
     const resource = await request(server)
@@ -75,10 +65,25 @@ describe('Pinterest ', () => {
     expect(typeof resource.body.data[command]).toBe('string');
   });
 
+  it('should create second User', async () => {
+    const command = 'createUser';
+    const body = {
+      query: `mutation {${command}(${makeString(helpers.secondUserObject)})}`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .expect(200);
+    secondToken = resource.body.data[command];
+
+    expect(typeof resource.body.data[command]).toBe('string');
+  });
+
   it('login user', async done => {
     const command = 'loginUser';
     const body = {
-      query: `mutation {${command}(${makeString(loginUserObject)})}`
+      query: `mutation {${command}(${makeString(helpers.loginUserObject)})}`
     };
 
     const resource = await request(server)
@@ -95,111 +100,83 @@ describe('Pinterest ', () => {
     expect(decodedLogin._id).toEqual(decodedSignup._id);
     expect(decodedLogin.exp).toBeCloseTo(decodedLogin.exp);
 
-    header.authorization = `Bearer ${token}`;
+    helpers.header.authorization = `Bearer ${token}`;
     done();
   });
 
   it('should create board', async () => {
     const command = 'createBoard';
     const body = {
-      query: `mutation { ${command}(${makeString(boardObject)}) {
-		_id name creator { username first_name } } }`
+      query: `mutation { ${command}(${makeString(helpers
+        .boardObject)})${helpers.boardQuery(' creator { _id }')} }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
-
-    boardID = resource.body.data[command]._id;
 
     const resultingBoard = resource.body.data[command];
 
-    expect(resultingBoard.creator.username).toEqual(userObject.username);
-    expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingBoard.name).toEqual(boardObject.name);
-  });
+    boardID = resultingBoard ._id;
+    userID = resultingBoard.creator._id;
+    helpers.setBoadID(boardID);
+
+    helpers.checkBoard(resultingBoard);
+    });
 
   it('should create Pin', async () => {
     const command = 'createPin';
     const body = {
       query: `mutation { ${command}(board: "${boardID}", ${makeString(
-        pinObject
-      )}) 
-          { 
-            _id name created_at 
-            board {  created_at description name} 
-            creator { username first_name } 
-          }
-        }`
+        helpers.pinObject
+      )}) ${helpers.pinQuery()} }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     pinID = resource.body.data[command]._id;
     const resultingPin = resource.body.data[command];
-
-    expect(resultingPin.creator.username).toEqual(userObject.username);
-    expect(resultingPin.name).toEqual(pinObject.name);
-    expect(resultingPin.board.name).toEqual(boardObject.name);
+    helpers.checkPin(resultingPin);
   });
 
   it('should get board by ID', async () => {
     const command = 'getBoard';
 
     const body = {
-      query: `{ ${command}(_id  : "${boardID}") 
-        { 
-          _id name
-          creator { username first_name } 
-        } 
-      }`
+      query: `{ ${command}(_id  : "${boardID}") ${helpers.boardQuery()}}`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const resultingBoard = resource.body.data[command];
-
-    expect(resultingBoard.creator.username).toEqual(userObject.username);
-    expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingBoard.name).toEqual(boardObject.name);
+    helpers.checkBoard(resultingBoard);
   });
 
   it('should get pin by ID', async () => {
     const command = 'getPin';
 
     const body = {
-      query: `{ ${command}(_id: "${pinID}") 
-        { 
-          _id name
-          creator { username first_name } 
-          board { _id name }
-        } 
-      }`
+      query: `{ ${command}(_id: "${pinID}") ${helpers.pinQuery()} }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const resultingPin = resource.body.data[command];
-
-    expect(resultingPin.creator.username).toEqual(userObject.username);
-    expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingPin.name).toEqual(pinObject.name);
-    expect(resultingPin.board.name).toEqual(boardObject.name);
-    expect(resultingPin.board._id).toEqual(boardID);
+    helpers.checkPin(resultingPin);
   });
 
   it('should update pin by ID', async () => {
@@ -208,28 +185,18 @@ describe('Pinterest ', () => {
 
     const body = {
       query: `mutation { ${command}(_id: "${pinID}",
-      note: "${note}") 
-        { 
-          _id name note
-          creator { username first_name } 
-          board { _id name }
-        } 
+      note: "${note}") ${helpers.pinQuery('note')}
       }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const resultingPin = resource.body.data[command];
-
-    expect(resultingPin.creator.username).toEqual(userObject.username);
-    expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingPin.name).toEqual(pinObject.name);
-    expect(resultingPin.board.name).toEqual(boardObject.name);
-    expect(resultingPin.board._id).toEqual(boardID);
+    helpers.checkPin(resultingPin);
     expect(resultingPin.note).toEqual(note);
   });
 
@@ -237,54 +204,270 @@ describe('Pinterest ', () => {
     const command = 'getUserPins';
 
     const body = {
-      query: `{ ${command} 
-        { 
-          _id name
-          creator { username first_name } 
-          board { _id name }
-        } 
-      }`
+      query: `{ ${command} ${helpers.pinQuery()} }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const [resultingPin] = resource.body.data[command];
-
-    expect(resultingPin.creator.username).toEqual(userObject.username);
-    expect(resultingPin.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingPin.name).toEqual(pinObject.name);
-    expect(resultingPin.board.name).toEqual(boardObject.name);
-    expect(resultingPin.board._id).toEqual(boardID);
+    helpers.checkPin(resultingPin);
   });
 
   it('should get user boards', async () => {
     const command = 'getUserBoards';
 
     const body = {
-      query: `{ ${command} 
-       { 
-          _id name
-          creator { username first_name } 
-        } 
-      }`
+      query: `{ ${command} ${helpers.boardQuery()} }`
     };
 
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(helpers.header)
+      .expect(200);
+
+    expect(resource.body.data[command] instanceof Array)
+      .toBe(true);
+    const [resultingBoard] = resource.body.data[command];
+
+    helpers.checkBoard(resultingBoard);
+  });
+
+  it('should get pins from board', async () => {
+    const command = 'getPinsFromBoard';
+
+    const body = {
+      query: `{ ${command} (boardID: "${boardID}") ${helpers.pinQuery()} }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(helpers.header)
+      .expect(200);
+
+    expect(resource.body.data[command] instanceof Array)
+      .toBe(true);
+    expect(resource.body.data[command].length).toBe(1);
+
+    const [resultingPin] = resource.body.data[command];
+
+    helpers.checkPin(resultingPin);
+  });
+
+  it("should follow board", async () => {
+    const command = 'followBoard';
+    const followers = ' followers { username first_name last_name }';
+    const body = {
+      query: `mutation { ${command}(_id: "${boardID}") ${helpers
+        .boardQuery(followers)} }`
+    };
+    const header = {...helpers.header, authorization: `Bearer ${secondToken}`}
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
       .set(header)
       .expect(200);
 
-    expect(resource.body.data[command] instanceof Array).toBe(true);
+    const resultingBoard = resource.body.data[command];
+
+    helpers.checkBoard(resultingBoard);
+
+    expect(resultingBoard.followers.length).toBe(2);
+    helpers.checkUser(resultingBoard.followers[0]);
+    helpers.checkUser(resultingBoard.followers[1], true);
+  });
+
+  it("should follow user", async () => {
+    const command = 'followUser';
+    const followers = ' following { username first_name last_name }';
+    const body = {
+      query: `mutation { ${command}(_id: "${userID}") ${helpers
+        .userQuery(followers)} }`
+    };
+    const header = {...helpers.header, authorization: `Bearer ${secondToken}`};
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(header)
+      .expect(200);
+
+    const resultingUser = resource.body.data[command];
+
+    helpers.checkUser(resultingUser, true);
+
+    expect(resultingUser.following.length).toBe(1);
+    helpers.checkUser(resultingUser.following[0]);
+  });
+
+  it("should get all user followings", async () => {
+    const command = 'getUserFollowings';
+    const followers = ' following { username first_name last_name }';
+    const body = {
+      query: ` { ${command} ${helpers
+        .userQuery(followers)} }`
+    };
+    const header = {...helpers.header, authorization: `Bearer ${secondToken}`};
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(header)
+      .expect(200);
+
+    const [ resultingUser ] = resource.body.data[command];
+
+    helpers.checkUser(resultingUser);
+
+
+  });
+
+  it("should get all user followers", async () => {
+    const command = 'getUserFollowers';
+    const body = {
+      query: ` { ${command} ${helpers
+        .userQuery()} }`
+    };
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(helpers.header)
+      .expect(200);
+
+    const [ resultingUser ] = resource.body.data[command];
+
+    helpers.checkUser(resultingUser, true);
+  });
+
+  it("should stop following user", async () => {
+    const command = 'stopFollowingUser';
+    const followers = ' following { username first_name last_name }';
+    const body = {
+      query: `mutation { ${command}(_id: "${userID}") ${helpers
+        .userQuery(followers)} }`
+    };
+
+    const header = {...helpers.header, authorization: `Bearer ${secondToken}`};
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(header)
+      .expect(200);
+
+    const resultingUser = resource.body.data[command];
+
+    helpers.checkUser(resultingUser, true);
+    expect(resultingUser.following).toBe(null);
+  });
+
+  it("should get all user followings after stop", async () => {
+    const command = 'getUserFollowings';
+    const followers = ' following { username first_name last_name }';
+    const body = {
+      query: ` { ${command} ${helpers
+        .userQuery(followers)} }`
+    };
+    const header = {...helpers.header, authorization: `Bearer ${secondToken}`};
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(header)
+      .expect(200);
+
+    expect(resource.body.data[command]).toBeNull();
+  });
+
+  it('should get board following', async () => {
+    const command = 'getBoardFollowing';
+
+    const body = {
+      query: `{ ${command} ${helpers.boardQuery()} }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(helpers.header)
+      .expect(200);
+
+    expect(resource.body.data[command] instanceof Array)
+      .toBe(true);
+    expect(resource.body.data[command].length).toBe(1);
+
     const [resultingBoard] = resource.body.data[command];
 
-    expect(resultingBoard.creator.username).toEqual(userObject.username);
-    expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingBoard.name).toEqual(boardObject.name);
+    helpers.checkBoard(resultingBoard);
+  });
+
+  it('should get board followers', async () => {
+    const command = 'getBoardFollowers';
+
+    const body = {
+      query: `{ ${command} (boardID: "${boardID}") ${helpers.userQuery()} }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(helpers.header)
+      .expect(200);
+
+    expect(resource.body.data[command] instanceof Array)
+      .toBe(true);
+    expect(resource.body.data[command].length).toBe(2);
+
+    const [resultingUser, secondUser ] = resource.body.data[command];
+
+    helpers.checkUser(resultingUser);
+    helpers.checkUser(secondUser, true);
+  });
+
+  it('should stop board following', async () => {
+    const command = 'stopFollowingBoard';
+
+    const followers = 'followers { username first_name last_name }';
+    const body = {
+      query: `mutation { ${command} (_id: "${boardID}") ${helpers
+        .boardQuery(followers)} }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(helpers.header)
+      .expect(200);
+
+    const resultingBoard = resource.body.data[command];
+
+    helpers.checkBoard(resultingBoard);
+    expect(resultingBoard.followers.length).toBe(1);
+    helpers.checkUser(resultingBoard.followers[0], true);
+
+  });
+
+  it('should get board followers after stop follow', async () => {
+    const command = 'getBoardFollowers';
+
+    const body = {
+      query: `{ ${command} (boardID: "${boardID}") ${helpers.userQuery()} }`
+    };
+
+    const resource = await request(server)
+      .post(API_ENDPOINT)
+      .send(body)
+      .set(helpers.header)
+      .expect(200);
+
+    expect(resource.body.data[command] instanceof Array)
+      .toBe(true);
+    expect(resource.body.data[command].length).toBe(1);
+
+    const [resultingUser ] = resource.body.data[command];
+
+    helpers.checkUser(resultingUser, true);
   });
 
   it('should update board by ID', async () => {
@@ -293,25 +476,17 @@ describe('Pinterest ', () => {
 
     const body = {
       query: `mutation { ${command}(_id: "${boardID}",
-      description: "${description}") 
-         { 
-          _id name description
-          creator { username first_name } 
-        } 
-      }`
+      description: "${description}") ${ helpers.boardQuery('description') } }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const resultingBoard = resource.body.data[command];
-
-    expect(resultingBoard.creator.username).toEqual(userObject.username);
-    expect(resultingBoard.creator.first_name).toEqual(userObject.first_name);
-    expect(resultingBoard.name).toEqual(boardObject.name);
+    helpers.checkBoard(resultingBoard);
     expect(resultingBoard.description).toEqual(description);
 
   });
@@ -320,19 +495,13 @@ describe('Pinterest ', () => {
     const command = 'getUser';
 
     const body = {
-      query: `{ ${command} 
-        { 
-          username first_name last_name
-          pins { name _id }
-          boards { name _id }  
-        } 
-      }`
+      query: `{ ${command} ${helpers.userQuery()} }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const resultingUser = resource.body.data[command];
@@ -340,98 +509,66 @@ describe('Pinterest ', () => {
     const [resultBoard]: IBoard[] = resultingUser.boards;
 
     expect(resultingUser.pins.length).toEqual(1);
-    expect(resultPin.name).toEqual(pinObject.name);
+    expect(resultPin.name).toEqual(helpers.pinObject.name);
 
     expect(resultingUser.boards.length).toEqual(1);
-    expect(resultBoard.name).toEqual(boardObject.name);
+    expect(resultBoard.name).toEqual(helpers.boardObject.name);
 
-    expect(resultingUser.first_name).toEqual(userObject.first_name);
-    expect(resultingUser.last_name).toEqual(userObject.last_name);
+    helpers.checkUser(resultingUser)
   });
 
   it('should delete pin by ID', async () => {
     const command = 'deletePin';
 
     const body = {
-      query: `mutation { ${command} (_id: "${pinID}")
-        { 
-          name note
-          board { name }
-          creator { username first_name last_name }   
-        } 
-      }`
+      query: `mutation { ${command} (_id: "${pinID}")${helpers.pinQuery()} }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const resultingPin = resource.body.data[command];
-    const creator: IUser = resultingPin.creator;
-    const board: IBoard = resultingPin.board;
-
-    expect(resultingPin.name).toEqual(pinObject.name);
-
-    expect(board.name).toEqual(boardObject.name);
-
-    expect(creator.first_name).toEqual(userObject.first_name);
-    expect(creator.last_name).toEqual(userObject.last_name);
+    helpers.checkPin(resultingPin);
   });
 
   it('should delete board by ID', async () => {
     const command = 'deleteBoard';
 
     const body = {
-      query: `mutation { ${command} (_id: "${boardID}")
-        { 
-          name description
-          creator { username first_name last_name }   
-        } 
-      }`
+      query: `mutation { ${command} (_id: "${boardID}") ${helpers
+        .boardQuery()} }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const resultingBoard = resource.body.data[command];
-    const creator: IUser = resultingBoard.creator;
-
-    expect(resultingBoard.name).toEqual(boardObject.name);
-
-    expect(creator.first_name).toEqual(userObject.first_name);
-    expect(creator.last_name).toEqual(userObject.last_name);
+    helpers.checkBoard(resultingBoard);
   });
 
   it('should verify boards and pins are gone', async () => {
     const command = 'getUser';
 
     const body = {
-      query: `{ ${command}
-        { 
-          username first_name last_name
-          pins { name _id }
-          boards { name _id }  
-        } 
-      }`
+      query: `{ ${command} ${helpers.userQuery()} }`
     };
 
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
-      .set(header)
+      .set(helpers.header)
       .expect(200);
 
     const resultingUser = resource.body.data[command];
-
+    helpers.checkUser(resultingUser);
     expect(resultingUser.pins).toBeNull();
     expect(resultingUser.boards).toBeNull();
 
-    expect(resultingUser.first_name).toEqual(userObject.first_name);
-    expect(resultingUser.last_name).toEqual(userObject.last_name);
   });
 });

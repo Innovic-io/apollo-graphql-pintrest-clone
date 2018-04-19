@@ -12,6 +12,7 @@
 
 * getPin
 * getUserPins
+* getPinsFromBoard
 
 #### User
 
@@ -19,10 +20,15 @@
 
 * createUser
 * loginUser
+* followUser
+* stopFollowingUser
 
 ###### Query
 
 * getUser
+* getBoardFollowers
+* getUserFollowers
+* getUserFollowings
 
 #### Board
 
@@ -30,12 +36,15 @@
 
 * createBoard
 * updateBoard
+* followBoard
+* stopFollowingBoard
 * deleteBoard
 
 ###### Query
 
 * getBoard
 * getUserBoards
+* getBoardFollowing
 
 ### Left to implement
 
@@ -43,29 +52,20 @@
 
 ###### Query
 
-* searchPins (not yet implemented)
-* getPinsFromBoard
+* searchPins **_(not yet implemented)_**
 
 #### Board
 
 ###### Mutation
 
-* followBoard
-* stopFollowingBoard
 ###### Query
 * searchBoard **_(not yet implemented)_**
 * getBoardSuggestion **_(not yet implemented)_**
-* getBoardFollowing
 
 #### User
 
 ###### Mutation
 
-* followUser
-* stopFollowingUser
-
 ###### Query
 
 * getAllUsers
-* getUserFollowers
-* getUserFollowings

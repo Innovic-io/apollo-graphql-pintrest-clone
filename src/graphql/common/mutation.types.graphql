@@ -36,7 +36,8 @@ type Mutation {
   followUser(_id: ID!): User
 
   # Makes the authenticated user unfollow the specified user.
-  stopFollowingUser(_id: ID!): User # userID = username OR user ID
+  stopFollowingUser(_id: ID!): User
+
   # Makes the authenticated user follow the specified board.
   followBoard(_id: ID!): Board
 

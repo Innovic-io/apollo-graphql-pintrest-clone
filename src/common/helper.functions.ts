@@ -150,7 +150,7 @@ const makeSchemaOnFly = async (companyID, resolvers) => {
   });
 };
 
-export async function getAllServices() {
+export const getAllServices = async () => {
   AVAILABLE_SERVICES.DatabaseService = await rootContainer
     .get<IDatabaseService>(SERVICE_TYPES.DatabaseService)
     .getDB();
