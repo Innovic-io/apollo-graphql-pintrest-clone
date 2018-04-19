@@ -14,7 +14,7 @@ import {
   Mutation,
   ResolveProperty
 } from '../../decorators/resolver.decorator';
-import { createObjectID } from "../../common/helper.functions";
+import { createObjectID } from '../../common/helper.functions';
 
 // if something need to be verified, in context field is
 // results of authorization.middleware

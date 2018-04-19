@@ -5,7 +5,6 @@ import 'jest';
 
 import {
   API_ENDPOINT,
-  FULL_PINTEREST,
   GRAPHQL_MIDDLEWARE,
   AVAILABLE_SERVICES
 } from '../../src/server.constants';
@@ -19,7 +18,8 @@ import {
 } from '../../src/common/helper.functions';
 import { IPin } from '../../src/graphql/pins/pin.interface';
 import { IBoard } from '../../src/graphql/boards/board.interface';
-import * as helpers  from './e2e.tests.helper';
+import * as helpers from './e2e.tests.helper';
+import { inMemoryMongo } from '../../src/database/database.service';
 
 jest.setTimeout(10000);
 
@@ -42,12 +42,11 @@ describe('Pinterest ', () => {
     GRAPHQL_MIDDLEWARE.replace(resultingSchema);
 
     db = AVAILABLE_SERVICES.DatabaseService;
-
     db.dropDatabase();
   });
 
   afterAll(() => {
-    db.dropDatabase();
+    inMemoryMongo.stop();
   });
 
   it('should create User', async () => {
@@ -107,8 +106,9 @@ describe('Pinterest ', () => {
   it('should create board', async () => {
     const command = 'createBoard';
     const body = {
-      query: `mutation { ${command}(${makeString(helpers
-        .boardObject)})${helpers.boardQuery(' creator { _id }')} }`
+      query: `mutation { ${command}(${makeString(
+        helpers.boardObject
+      )})${helpers.boardQuery(' creator { _id }')} }`
     };
 
     const resource = await request(server)
@@ -119,12 +119,12 @@ describe('Pinterest ', () => {
 
     const resultingBoard = resource.body.data[command];
 
-    boardID = resultingBoard ._id;
+    boardID = resultingBoard._id;
     userID = resultingBoard.creator._id;
     helpers.setBoadID(boardID);
 
     helpers.checkBoard(resultingBoard);
-    });
+  });
 
   it('should create Pin', async () => {
     const command = 'createPin';
@@ -230,8 +230,7 @@ describe('Pinterest ', () => {
       .set(helpers.header)
       .expect(200);
 
-    expect(resource.body.data[command] instanceof Array)
-      .toBe(true);
+    expect(resource.body.data[command] instanceof Array).toBe(true);
     const [resultingBoard] = resource.body.data[command];
 
     helpers.checkBoard(resultingBoard);
@@ -250,8 +249,7 @@ describe('Pinterest ', () => {
       .set(helpers.header)
       .expect(200);
 
-    expect(resource.body.data[command] instanceof Array)
-      .toBe(true);
+    expect(resource.body.data[command] instanceof Array).toBe(true);
     expect(resource.body.data[command].length).toBe(1);
 
     const [resultingPin] = resource.body.data[command];
@@ -259,14 +257,18 @@ describe('Pinterest ', () => {
     helpers.checkPin(resultingPin);
   });
 
-  it("should follow board", async () => {
+  it('should follow board', async () => {
     const command = 'followBoard';
     const followers = ' followers { username first_name last_name }';
     const body = {
-      query: `mutation { ${command}(_id: "${boardID}") ${helpers
-        .boardQuery(followers)} }`
+      query: `mutation { ${command}(_id: "${boardID}") ${helpers.boardQuery(
+        followers
+      )} }`
     };
-    const header = {...helpers.header, authorization: `Bearer ${secondToken}`}
+    const header = {
+      ...helpers.header,
+      authorization: `Bearer ${secondToken}`
+    };
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
@@ -282,14 +284,18 @@ describe('Pinterest ', () => {
     helpers.checkUser(resultingBoard.followers[1], true);
   });
 
-  it("should follow user", async () => {
+  it('should follow user', async () => {
     const command = 'followUser';
     const followers = ' following { username first_name last_name }';
     const body = {
-      query: `mutation { ${command}(_id: "${userID}") ${helpers
-        .userQuery(followers)} }`
+      query: `mutation { ${command}(_id: "${userID}") ${helpers.userQuery(
+        followers
+      )} }`
     };
-    const header = {...helpers.header, authorization: `Bearer ${secondToken}`};
+    const header = {
+      ...helpers.header,
+      authorization: `Bearer ${secondToken}`
+    };
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
@@ -304,32 +310,31 @@ describe('Pinterest ', () => {
     helpers.checkUser(resultingUser.following[0]);
   });
 
-  it("should get all user followings", async () => {
+  it('should get all user followings', async () => {
     const command = 'getUserFollowings';
     const followers = ' following { username first_name last_name }';
     const body = {
-      query: ` { ${command} ${helpers
-        .userQuery(followers)} }`
+      query: ` { ${command} ${helpers.userQuery(followers)} }`
     };
-    const header = {...helpers.header, authorization: `Bearer ${secondToken}`};
+    const header = {
+      ...helpers.header,
+      authorization: `Bearer ${secondToken}`
+    };
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
       .set(header)
       .expect(200);
 
-    const [ resultingUser ] = resource.body.data[command];
+    const [resultingUser] = resource.body.data[command];
 
     helpers.checkUser(resultingUser);
-
-
   });
 
-  it("should get all user followers", async () => {
+  it('should get all user followers', async () => {
     const command = 'getUserFollowers';
     const body = {
-      query: ` { ${command} ${helpers
-        .userQuery()} }`
+      query: ` { ${command} ${helpers.userQuery()} }`
     };
     const resource = await request(server)
       .post(API_ENDPOINT)
@@ -337,20 +342,24 @@ describe('Pinterest ', () => {
       .set(helpers.header)
       .expect(200);
 
-    const [ resultingUser ] = resource.body.data[command];
+    const [resultingUser] = resource.body.data[command];
 
     helpers.checkUser(resultingUser, true);
   });
 
-  it("should stop following user", async () => {
+  it('should stop following user', async () => {
     const command = 'stopFollowingUser';
     const followers = ' following { username first_name last_name }';
     const body = {
-      query: `mutation { ${command}(_id: "${userID}") ${helpers
-        .userQuery(followers)} }`
+      query: `mutation { ${command}(_id: "${userID}") ${helpers.userQuery(
+        followers
+      )} }`
     };
 
-    const header = {...helpers.header, authorization: `Bearer ${secondToken}`};
+    const header = {
+      ...helpers.header,
+      authorization: `Bearer ${secondToken}`
+    };
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
@@ -363,14 +372,16 @@ describe('Pinterest ', () => {
     expect(resultingUser.following).toBe(null);
   });
 
-  it("should get all user followings after stop", async () => {
+  it('should get all user followings after stop', async () => {
     const command = 'getUserFollowings';
     const followers = ' following { username first_name last_name }';
     const body = {
-      query: ` { ${command} ${helpers
-        .userQuery(followers)} }`
+      query: ` { ${command} ${helpers.userQuery(followers)} }`
     };
-    const header = {...helpers.header, authorization: `Bearer ${secondToken}`};
+    const header = {
+      ...helpers.header,
+      authorization: `Bearer ${secondToken}`
+    };
     const resource = await request(server)
       .post(API_ENDPOINT)
       .send(body)
@@ -393,8 +404,7 @@ describe('Pinterest ', () => {
       .set(helpers.header)
       .expect(200);
 
-    expect(resource.body.data[command] instanceof Array)
-      .toBe(true);
+    expect(resource.body.data[command] instanceof Array).toBe(true);
     expect(resource.body.data[command].length).toBe(1);
 
     const [resultingBoard] = resource.body.data[command];
@@ -415,11 +425,10 @@ describe('Pinterest ', () => {
       .set(helpers.header)
       .expect(200);
 
-    expect(resource.body.data[command] instanceof Array)
-      .toBe(true);
+    expect(resource.body.data[command] instanceof Array).toBe(true);
     expect(resource.body.data[command].length).toBe(2);
 
-    const [resultingUser, secondUser ] = resource.body.data[command];
+    const [resultingUser, secondUser] = resource.body.data[command];
 
     helpers.checkUser(resultingUser);
     helpers.checkUser(secondUser, true);
@@ -430,8 +439,9 @@ describe('Pinterest ', () => {
 
     const followers = 'followers { username first_name last_name }';
     const body = {
-      query: `mutation { ${command} (_id: "${boardID}") ${helpers
-        .boardQuery(followers)} }`
+      query: `mutation { ${command} (_id: "${boardID}") ${helpers.boardQuery(
+        followers
+      )} }`
     };
 
     const resource = await request(server)
@@ -445,7 +455,6 @@ describe('Pinterest ', () => {
     helpers.checkBoard(resultingBoard);
     expect(resultingBoard.followers.length).toBe(1);
     helpers.checkUser(resultingBoard.followers[0], true);
-
   });
 
   it('should get board followers after stop follow', async () => {
@@ -461,11 +470,10 @@ describe('Pinterest ', () => {
       .set(helpers.header)
       .expect(200);
 
-    expect(resource.body.data[command] instanceof Array)
-      .toBe(true);
+    expect(resource.body.data[command] instanceof Array).toBe(true);
     expect(resource.body.data[command].length).toBe(1);
 
-    const [resultingUser ] = resource.body.data[command];
+    const [resultingUser] = resource.body.data[command];
 
     helpers.checkUser(resultingUser, true);
   });
@@ -476,7 +484,7 @@ describe('Pinterest ', () => {
 
     const body = {
       query: `mutation { ${command}(_id: "${boardID}",
-      description: "${description}") ${ helpers.boardQuery('description') } }`
+      description: "${description}") ${helpers.boardQuery('description')} }`
     };
 
     const resource = await request(server)
@@ -488,7 +496,6 @@ describe('Pinterest ', () => {
     const resultingBoard = resource.body.data[command];
     helpers.checkBoard(resultingBoard);
     expect(resultingBoard.description).toEqual(description);
-
   });
 
   it('should get user by ID', async () => {
@@ -514,7 +521,7 @@ describe('Pinterest ', () => {
     expect(resultingUser.boards.length).toEqual(1);
     expect(resultBoard.name).toEqual(helpers.boardObject.name);
 
-    helpers.checkUser(resultingUser)
+    helpers.checkUser(resultingUser);
   });
 
   it('should delete pin by ID', async () => {
@@ -538,8 +545,7 @@ describe('Pinterest ', () => {
     const command = 'deleteBoard';
 
     const body = {
-      query: `mutation { ${command} (_id: "${boardID}") ${helpers
-        .boardQuery()} }`
+      query: `mutation { ${command} (_id: "${boardID}") ${helpers.boardQuery()} }`
     };
 
     const resource = await request(server)
@@ -569,6 +575,5 @@ describe('Pinterest ', () => {
     helpers.checkUser(resultingUser);
     expect(resultingUser.pins).toBeNull();
     expect(resultingUser.boards).toBeNull();
-
   });
 });

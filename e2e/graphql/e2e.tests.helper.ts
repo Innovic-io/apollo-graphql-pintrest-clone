@@ -1,5 +1,4 @@
-import { API_ENDPOINT, FULL_PINTEREST } from "../../src/server.constants";
-import { async } from "rxjs/scheduler/async";
+import { FULL_PINTEREST } from '../../src/server.constants';
 
 export const loginUserObject = { username: 'Username', password: 'password' };
 export const userObject = {
@@ -15,11 +14,14 @@ export const secondUserObject = {
   last_name: 'Mirkovic'
 };
 
-export const boardObject = { name: 'Unique Name', description: 'Board description' };
+export const boardObject = {
+  name: 'Unique Name',
+  description: 'Board description'
+};
 export const pinObject = { name: 'Unique name', note: 'Note for this pin' };
 export let boardID;
 
-export const setBoadID = (id) => (boardID = id);
+export const setBoadID = id => (boardID = id);
 
 export const boardQuery = (additionalField = '') =>
   `{ _id name creator { username first_name } ${additionalField} }`;
@@ -38,7 +40,7 @@ export let header = { authorization: '', company: FULL_PINTEREST };
 // @ts-ignore
 
 export const checkUser = (singleUser, secondUser = false) => {
-  if(secondUser) {
+  if (secondUser) {
     expect(singleUser.first_name).toEqual(secondUserObject.first_name);
     expect(singleUser.username).toEqual(secondUserObject.username);
     expect(singleUser.last_name).toEqual(secondUserObject.last_name);
@@ -49,13 +51,13 @@ export const checkUser = (singleUser, secondUser = false) => {
   }
 };
 
-export const checkBoard = (singleBoard) => {
+export const checkBoard = singleBoard => {
   expect(singleBoard.creator.username).toEqual(userObject.username);
   expect(singleBoard.creator.first_name).toEqual(userObject.first_name);
   expect(singleBoard.name).toEqual(boardObject.name);
 };
 
-export const checkPin = (singlePin) => {
+export const checkPin = singlePin => {
   expect(singlePin.creator.username).toEqual(userObject.username);
   expect(singlePin.creator.first_name).toEqual(userObject.first_name);
   expect(singlePin.name).toEqual(pinObject.name);

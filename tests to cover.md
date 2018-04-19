@@ -59,6 +59,7 @@
 ###### Mutation
 
 ###### Query
+
 * searchBoard **_(not yet implemented)_**
 * getBoardSuggestion **_(not yet implemented)_**
 

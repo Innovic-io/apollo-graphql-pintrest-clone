@@ -83,7 +83,7 @@ export default class BoardService implements IBoardService {
     const result = await this.database.findOneAndUpdate(
       { _id: createObjectID(_id) },
       { $pull: { followers: { $in: [creatorID] } } },
-      {returnOriginal: false}
+      { returnOriginal: false }
     );
 
     return result.value;
@@ -218,8 +218,7 @@ export default class BoardService implements IBoardService {
   async getBoardFollowers(_id: ObjectID) {
     const searchedBoard = await this.database.findOne<IBoard>({ _id });
     const result = [];
-    for(const user of searchedBoard.followers) {
-
+    for (const user of searchedBoard.followers) {
       result.push(await getServiceById(user, SERVICE_ENUM.USERS));
     }
 
