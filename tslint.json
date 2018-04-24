@@ -5,6 +5,7 @@
     "no-unused-expression": true
   },
   "rules": {
+    "trailing-comma": [true],
     "eofline": false,
     "quotemark": [true, "single"],
     "indent": false,

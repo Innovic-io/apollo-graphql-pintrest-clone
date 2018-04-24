@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb';
-const MongoInMemory = require('mongo-in-memory');
+import * as MongoInMemory from 'mongo-in-memory';
 
 import {
   DB_NAME,
