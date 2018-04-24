@@ -8,8 +8,7 @@ type Query {
   # Not yet implemented
   searchPins(query: String): Pin
 
-  getPinsFromBoard(boardID: ID!,
-    cursor: String): [Pin]
+  getPinsFromBoard(boardID: ID!, cursor: String): [Pin]
 
   getUser: User
 
@@ -35,5 +34,9 @@ type Query {
   # The pin_id that you want to return board suggestions for.
   # Boards that Pinterest would suggest to the authenticated user if they were to save the specified Pin.
 
+  # get all Boards which authorized user follow
   getBoardFollowing(cursor: String): [Board]
+
+  # get all users which follow board by ID
+  getBoardFollowers(boardID: ID!): [User]
 }

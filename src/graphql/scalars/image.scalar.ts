@@ -15,7 +15,7 @@ const ImageScalarType = new GraphQLScalarType({
   description: 'Image manipulating scalar',
   parseValue,
   serialize,
-  parseLiteral,
+  parseLiteral
 });
 
 export default ImageScalarType;

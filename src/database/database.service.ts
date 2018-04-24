@@ -1,13 +1,16 @@
 import { MongoClient } from 'mongodb';
+const MongoInMemory = require('mongo-in-memory');
 
 import {
   DB_NAME,
   DATABASE_URI,
-  TEST_DATABASE_URI,
-  DB_TESTING
+  DB_TESTING,
+  DB_PORT
 } from '../server.constants';
 import { IDatabase, IDatabaseService } from './interfaces/database.interface';
 import { Service } from '../decorators/service.decorator';
+
+export let inMemoryMongo;
 
 @Service()
 export class DatabaseService implements IDatabaseService {
@@ -17,9 +20,8 @@ export class DatabaseService implements IDatabaseService {
     let connection;
 
     if (process.env.NODE_ENV === 'test') {
-      connection = await MongoClient.connect(TEST_DATABASE_URI);
-
-      this.database = connection.db(DB_TESTING);
+      inMemoryMongo = new MongoInMemory(DB_PORT);
+      this.database = await inMemoryMongo.getConnection(DB_TESTING);
     } else {
       connection = await MongoClient.connect(DATABASE_URI);
       this.database = connection.db(DB_NAME);

@@ -14,6 +14,7 @@ import {
   Mutation,
   ResolveProperty
 } from '../../decorators/resolver.decorator';
+import { createObjectID } from '../../common/helper.functions';
 
 // if something need to be verified, in context field is
 // results of authorization.middleware
@@ -69,8 +70,8 @@ export default class UserResolver implements IResolver {
   @Mutation()
   async stopFollowingUser(parent, { _id }, context: IAuthorization) {
     return await userService.removeFromSet(
-      _id,
       context._id,
+      createObjectID(_id),
       USERS_ELEMENT.FOLLOWING
     );
   }

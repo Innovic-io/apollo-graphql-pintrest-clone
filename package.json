@@ -38,6 +38,7 @@
     "@types/socket.io": "^1.4.32",
     "jest": "^22.4.0",
     "nodemon": "^1.15.0",
+    "mongo-in-memory": "^0.0.5",
     "husky": "^0.14.3",
     "prettier": "~1.12.1",
     "pretty-quick": "^1.4.1",
