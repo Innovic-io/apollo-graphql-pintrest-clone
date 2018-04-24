@@ -36,7 +36,11 @@ export function Resolver(typeToResolve: string) {
 
 function resolverFunction(target, toResolve, typeToResolve?) {
   overrideInjectable(target);
-  const resolved = { ...toResolve };
+    const resolved = Object.assign({}, ...Object.keys(toResolve)
+    .filter((key) => Object.keys(toResolve[ key ]).length > 0)
+    .map((key) => Object.assign({ [ key ]: toResolve[ key ] }))
+  );
+
   target.prototype.getAll = () => resolved;
   clearResolverQueries(typeToResolve);
   return target;
