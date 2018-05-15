@@ -7,7 +7,7 @@ type Mutation {
     image: ImageScalar # image we want to upload via multipart form data
     image_url: String # link to image we want to Pin
     image_base64: String # Base64 encoded image
-  ): Pin @authonticated
+  ): Pin @authenticated
   # image || image_url || image_base64 mandatory
 
   updatePin(
@@ -15,9 +15,9 @@ type Mutation {
     board: ID # The board you want to move the Pin to, in the format <username>/<board_name>.
     note: String # The new Pin description.
     link: String # The new Pin link.
-  ): Pin @authonticated
+  ): Pin @authenticated
 
-  deletePin(_id: ID!): Pin @authonticated
+  deletePin(_id: ID!): Pin @authenticated
 
   # Return token for user
   createUser(
@@ -33,19 +33,19 @@ type Mutation {
   loginUser(username: String!, password: String!): String
 
   # Makes the authenticated user follow the specified user.
-  followUser(_id: ID!): User @authonticated
+  followUser(_id: ID!): User @authenticated
 
   # Makes the authenticated user unfollow the specified user.
-  stopFollowingUser(_id: ID!): User @authonticated
+  stopFollowingUser(_id: ID!): User @authenticated
 
   # Makes the authenticated user follow the specified board.
-  followBoard(_id: ID!): Board @authonticated
+  followBoard(_id: ID!): Board @authenticated
 
   # Makes the authenticated user unfollow the specified board.
-  stopFollowingBoard(_id: ID!): Board @authonticated
+  stopFollowingBoard(_id: ID!): Board @authenticated
 
   # Creates a board for the authenticated user.
-  createBoard(name: String!, description: String): Board @authonticated
+  createBoard(name: String!, description: String): Board @authenticated
 
   # Changes the chosen board’s name and/or description.
   updateBoard(
@@ -55,8 +55,8 @@ type Mutation {
     name: String
     # new board description
     description: String
-  ): Board @authonticated
+  ): Board @authenticated
 
   # Deletes the specified board. This action is permanent and cannot be undone.
-  deleteBoard(_id: ID!): Board @authonticated
+  deleteBoard(_id: ID!): Board @authenticated
 }

@@ -1,7 +1,7 @@
 import AuthorizationMiddleware from '../../authorization/authorization.middleware';
 
 const DirectiveResolver = {
-  async authonticated(next, source, args, context) {
+  async authenticated(next, source, args, context) {
     try {
       Object.assign(context, await AuthorizationMiddleware(context.token));
 

@@ -3,27 +3,27 @@ type Query {
 
   getPin(_id: ID!): Pin
 
-  getUserPins(cursor: String): [Pin] @authonticated
+  getUserPins(cursor: String): [Pin] @authenticated
 
   # Not yet implemented
   searchPins(query: String): Pin
 
-  getPinsFromBoard(boardID: ID!, cursor: String): [Pin] @authonticated
+  getPinsFromBoard(boardID: ID!, cursor: String): [Pin] @authenticated
 
-  getUser: User @authonticated
+  getUser: User @authenticated
 
   getAllUsers: [User]
 
-  getUserFollowers(cursor: String): [User] @authonticated
+  getUserFollowers(cursor: String): [User] @authenticated
 
-  getUserFollowings(cursor: String): [User] @authonticated
+  getUserFollowings(cursor: String): [User] @authenticated
 
-  getUserBoards: [Board] @authonticated
+  getUserBoards: [Board] @authenticated
 
   # query - if we want to search for specific pin
   # example /search/pins/?q=places%20to%20see%20before%20you%20die
 
-  getBoard(_id: ID!): Board @authonticated
+  getBoard(_id: ID!): Board @authenticated
 
   # Not yet implemented
   searchBoard(boardName: String): Board
@@ -35,8 +35,8 @@ type Query {
   # Boards that Pinterest would suggest to the authenticated user if they were to save the specified Pin.
 
   # get all Boards which authorized user follow
-  getBoardFollowing(cursor: String): [Board] @authonticated
+  getBoardFollowing(cursor: String): [Board] @authenticated
 
   # get all users which follow board by ID
-  getBoardFollowers(boardID: ID!): [User] @authonticated
+  getBoardFollowers(boardID: ID!): [User] @authenticated
 }
