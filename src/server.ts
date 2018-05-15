@@ -6,7 +6,6 @@ import { join } from 'path';
 import { Server } from 'http';
 
 import { API_ENDPOINT, GRAPHQL_MIDDLEWARE, PORT } from './server.constants';
-import AuthorizationMiddleware from './authorization/authorization.middleware';
 import { changeSchema, getAllServices } from './common/helper.functions';
 
 export let socket: socketIo.Server;
@@ -24,7 +23,7 @@ async function bootstrap() {
 
   app.use(bodyParser.json(), multer().any(), (req, res, next) => next());
 
-  app.post(API_ENDPOINT, AuthorizationMiddleware, GRAPHQL_MIDDLEWARE.handler());
+  app.post(API_ENDPOINT, GRAPHQL_MIDDLEWARE.handler());
 
   app.get('/', (request, response) => {
     response.sendFile(join(__dirname, '../client/index.html'));

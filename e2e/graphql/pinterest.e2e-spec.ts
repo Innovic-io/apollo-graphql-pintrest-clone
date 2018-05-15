@@ -9,7 +9,6 @@ import {
   AVAILABLE_SERVICES
 } from '../../src/server.constants';
 import { IAuthorization } from '../../src/authorization/authorization.interface';
-import AuthorizationMiddleware from '../../src/authorization/authorization.middleware';
 import { decodeToken } from '../../src/common/cryptography';
 import {
   changeSchema,
@@ -34,7 +33,7 @@ describe('Pinterest ', () => {
 
   const server = express()
     .use(bodyParser.json(), (req, res, next) => next())
-    .post(API_ENDPOINT, AuthorizationMiddleware, GRAPHQL_MIDDLEWARE.handler());
+    .post(API_ENDPOINT, GRAPHQL_MIDDLEWARE.handler());
 
   beforeAll(async () => {
     await getAllServices();

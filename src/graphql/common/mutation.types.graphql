@@ -7,7 +7,7 @@ type Mutation {
     image: ImageScalar # image we want to upload via multipart form data
     image_url: String # link to image we want to Pin
     image_base64: String # Base64 encoded image
-  ): Pin
+  ): Pin @authonticated
   # image || image_url || image_base64 mandatory
 
   updatePin(
@@ -15,9 +15,9 @@ type Mutation {
     board: ID # The board you want to move the Pin to, in the format <username>/<board_name>.
     note: String # The new Pin description.
     link: String # The new Pin link.
-  ): Pin
+  ): Pin @authonticated
 
-  deletePin(_id: ID!): Pin
+  deletePin(_id: ID!): Pin @authonticated
 
   # Return token for user
   createUser(
@@ -33,27 +33,30 @@ type Mutation {
   loginUser(username: String!, password: String!): String
 
   # Makes the authenticated user follow the specified user.
-  followUser(_id: ID!): User
+  followUser(_id: ID!): User @authonticated
 
   # Makes the authenticated user unfollow the specified user.
-  stopFollowingUser(_id: ID!): User
+  stopFollowingUser(_id: ID!): User @authonticated
 
   # Makes the authenticated user follow the specified board.
-  followBoard(_id: ID!): Board
+  followBoard(_id: ID!): Board @authonticated
 
   # Makes the authenticated user unfollow the specified board.
-  stopFollowingBoard(_id: ID!): Board
+  stopFollowingBoard(_id: ID!): Board @authonticated
 
   # Creates a board for the authenticated user.
-  createBoard(name: String!, description: String): Board
+  createBoard(name: String!, description: String): Board @authonticated
 
   # Changes the chosen board’s name and/or description.
   updateBoard(
-    _id: ID! # The board you want to edit in the format <username>/<board_name>
-    name: String # new Board name
-    description: String # new board description
-  ): Board
+    # The board you want to edit
+    _id: ID!
+    # new Board name
+    name: String
+    # new board description
+    description: String
+  ): Board @authonticated
 
   # Deletes the specified board. This action is permanent and cannot be undone.
-  deleteBoard(_id: ID!): Board
+  deleteBoard(_id: ID!): Board @authonticated
 }

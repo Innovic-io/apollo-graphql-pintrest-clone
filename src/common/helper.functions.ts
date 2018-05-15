@@ -12,11 +12,11 @@ import {
 import { IUser } from '../graphql/user/user.interface';
 import { comparePasswords, generateToken } from './cryptography';
 import { getDataOnFly } from '../typeDefs';
-import { IAuthorization } from '../authorization/authorization.interface';
 import { rootContainer } from '../inversify/inversify.config';
 import { RESOLVER_TYPES, SERVICE_TYPES } from '../inversify/inversify.types';
 import { RESOLVERS, AVAILABLE_SERVICES } from '../server.constants';
 import { IDatabaseService } from '../database/interfaces/database.interface';
+import DirectiveResolver from '../graphql/common/directive.resolver';
 
 /**
  * Make Object ID from id provided
@@ -136,7 +136,7 @@ export const changeSchema = async () => {
     const schema = await makeSchemaOnFly(req.headers.company, RESOLVERS);
     return Object.assign({
       schema,
-      context: req.user as IAuthorization
+      context: { token: req.headers.authorization }
     });
   });
 };
@@ -145,6 +145,7 @@ const makeSchemaOnFly = async (companyID, resolvers) => {
   const typeDefs = await getDataOnFly(companyID);
 
   return makeExecutableSchema({
+    directiveResolvers: DirectiveResolver,
     resolvers,
     typeDefs
   });
